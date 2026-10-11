@@ -13,5 +13,8 @@ app/build/
 *.ap_
 *.dex
 *.bin
+*.zip
+release/*.apk
+release/*.zip
 desktop/node_modules/
 desktop/dist/
