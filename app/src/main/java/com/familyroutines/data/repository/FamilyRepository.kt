@@ -15,6 +15,8 @@ class FamilyRepository(private val familyDao: FamilyDao) {
 
     suspend fun updateChild(child: ChildEntity) = familyDao.updateChild(child)
 
+    suspend fun deleteChild(child: ChildEntity) = familyDao.deleteChild(child)
+
     // Routines
     fun getRoutinesForChild(childId: Long): Flow<List<RoutineItemEntity>> =
         familyDao.getRoutinesForChild(childId)

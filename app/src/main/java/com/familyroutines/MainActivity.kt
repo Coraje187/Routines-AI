@@ -88,6 +88,7 @@ class MainActivity : ComponentActivity() {
                         onSelectChild = { viewModel.selectChild(it) },
                         onSelectTab = { viewModel.selectTab(it) },
                         onAddKid = { viewModel.openAddKidDialog() },
+                        onDeleteChild = { viewModel.deleteChild(it) },
                         onAddChore = { viewModel.openAddChoreDialog() },
                         onAddRoutine = { viewModel.openAddRoutineDialog() },
                         onSelectCalendarDate = { viewModel.setSelectedCalendarDate(it) },

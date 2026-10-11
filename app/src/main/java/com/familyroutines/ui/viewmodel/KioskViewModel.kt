@@ -132,6 +132,14 @@ class KioskViewModel(
         }
     }
 
+    fun deleteChild(child: ChildEntity) {
+        viewModelScope.launch {
+            repository.deleteChild(child)
+            val remaining = children.value.filter { it.id != child.id }
+            _selectedChildId.value = remaining.firstOrNull()?.id
+        }
+    }
+
     // Chore Management
     fun openAddChoreDialog() { _showAddChoreDialog.value = true }
     fun closeAddChoreDialog() { _showAddChoreDialog.value = false }

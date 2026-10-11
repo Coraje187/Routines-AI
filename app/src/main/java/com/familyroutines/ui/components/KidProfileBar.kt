@@ -8,13 +8,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,9 +30,12 @@ fun KidProfileBar(
     isDarkTheme: Boolean,
     onSelectChild: (Long) -> Unit,
     onAddKid: () -> Unit,
+    onDeleteChild: (ChildEntity) -> Unit = {},
     onToggleDarkTheme: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var childToDelete by remember { mutableStateOf<ChildEntity?>(null) }
+
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -153,6 +155,24 @@ fun KidProfileBar(
                             color = if (isSelected) Color.White else Color(0xFFD97706)
                         )
                     }
+
+                    // Remove Child Button (shown on selected profile)
+                    if (isSelected) {
+                        Box(
+                            modifier = Modifier
+                                .size(22.dp)
+                                .background(Color.Black.copy(alpha = 0.25f), CircleShape)
+                                .clickable { childToDelete = child },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Remove ${child.name}",
+                                tint = Color.White,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    }
                 }
             }
 
@@ -203,5 +223,45 @@ fun KidProfileBar(
                 tint = if (isDarkTheme) Color(0xFFFDE68A) else Color(0xFF475569)
             )
         }
+    }
+
+    // Confirmation Dialog for Removing a Child
+    if (childToDelete != null) {
+        val target = childToDelete!!
+        AlertDialog(
+            onDismissRequest = { childToDelete = null },
+            title = {
+                Text(
+                    text = "Remove ${target.name}?",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp
+                )
+            },
+            text = {
+                Text(
+                    text = "Are you sure you want to remove ${target.name}? This will delete all of ${target.name}'s routines, chores, and notes from Routines AI.",
+                    fontSize = 15.sp,
+                    lineHeight = 22.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDeleteChild(target)
+                        childToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444)),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text("Remove Child", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { childToDelete = null }) {
+                    Text("Cancel", fontSize = 15.sp)
+                }
+            },
+            shape = RoundedCornerShape(20.dp)
+        )
     }
 }

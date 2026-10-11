@@ -19,6 +19,9 @@ interface FamilyDao {
     @Update
     suspend fun updateChild(child: ChildEntity)
 
+    @Delete
+    suspend fun deleteChild(child: ChildEntity)
+
     // --- Routines ---
     @Query("SELECT * FROM routine_items WHERE childId = :childId ORDER BY orderIndex ASC")
     fun getRoutinesForChild(childId: Long): Flow<List<RoutineItemEntity>>

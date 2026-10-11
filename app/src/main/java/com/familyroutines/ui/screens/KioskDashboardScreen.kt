@@ -41,6 +41,7 @@ fun KioskDashboardScreen(
     onSelectChild: (Long) -> Unit,
     onSelectTab: (String) -> Unit,
     onAddKid: () -> Unit,
+    onDeleteChild: (ChildEntity) -> Unit = {},
     onAddChore: () -> Unit,
     onAddRoutine: () -> Unit,
     onSelectCalendarDate: (String) -> Unit,
@@ -71,6 +72,7 @@ fun KioskDashboardScreen(
             isDarkTheme = isDarkTheme,
             onSelectChild = onSelectChild,
             onAddKid = onAddKid,
+            onDeleteChild = onDeleteChild,
             onToggleDarkTheme = onToggleDarkTheme,
             modifier = Modifier.padding(bottom = 12.dp)
         )
