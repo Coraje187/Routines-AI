@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.familyroutines.data.local.entities.*
 import kotlinx.coroutines.CoroutineScope
@@ -16,9 +17,10 @@ import kotlinx.coroutines.launch
         RoutineItemEntity::class,
         ChoreEntity::class,
         CalendarEventEntity::class,
-        ParentNoteEntity::class
+        ParentNoteEntity::class,
+        FamilyPhotoEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class FamilyDatabase : RoomDatabase() {
@@ -29,6 +31,21 @@ abstract class FamilyDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: FamilyDatabase? = null
 
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `family_photos` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `photoUri` TEXT NOT NULL,
+                        `caption` TEXT NOT NULL,
+                        `timestamp` INTEGER NOT NULL
+                    )
+                    """.trimIndent()
+                )
+            }
+        }
+
         fun getDatabase(context: Context, scope: CoroutineScope = CoroutineScope(Dispatchers.IO)): FamilyDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -36,6 +53,7 @@ abstract class FamilyDatabase : RoomDatabase() {
                     FamilyDatabase::class.java,
                     "family_routines_database"
                 )
+                    .addMigrations(MIGRATION_3_4)
                     .fallbackToDestructiveMigration()
                     .addCallback(DatabaseCallback(scope))
                     .build()

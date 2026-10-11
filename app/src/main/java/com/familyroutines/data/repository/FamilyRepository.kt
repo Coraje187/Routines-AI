@@ -59,4 +59,16 @@ class FamilyRepository(private val familyDao: FamilyDao) {
     suspend fun insertNote(note: ParentNoteEntity): Long = familyDao.insertNote(note)
 
     suspend fun deleteNote(note: ParentNoteEntity) = familyDao.deleteNote(note)
+
+    // Family Photos
+    val allFamilyPhotos: Flow<List<FamilyPhotoEntity>> = familyDao.getAllFamilyPhotos()
+
+    suspend fun insertFamilyPhoto(photo: FamilyPhotoEntity): Long =
+        familyDao.insertFamilyPhoto(photo)
+
+    suspend fun updateFamilyPhoto(photo: FamilyPhotoEntity) =
+        familyDao.updateFamilyPhoto(photo)
+
+    suspend fun deleteFamilyPhoto(photo: FamilyPhotoEntity) =
+        familyDao.deleteFamilyPhoto(photo)
 }

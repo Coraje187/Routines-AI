@@ -17,20 +17,28 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import androidx.compose.material.icons.filled.CameraAlt
 import com.familyroutines.data.local.entities.ChildEntity
+import com.familyroutines.data.weather.WeatherInfo
 import com.familyroutines.ui.theme.*
 
 @Composable
 fun KidProfileBar(
     children: List<ChildEntity>,
     selectedChildId: Long?,
+    weather: WeatherInfo,
     isDarkTheme: Boolean,
     onSelectChild: (Long) -> Unit,
     onAddKid: () -> Unit,
     onDeleteChild: (ChildEntity) -> Unit = {},
+    onEditKidPhoto: (ChildEntity) -> Unit = {},
+    onWeatherClick: () -> Unit = {},
     onToggleDarkTheme: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -108,19 +116,39 @@ fun KidProfileBar(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Avatar dot / initials
+                    // Avatar dot / Photo / Initials (Clickable to change photo!)
                     Box(
                         modifier = Modifier
-                            .size(28.dp)
-                            .background(if (isSelected) Color.White.copy(alpha = 0.25f) else childColor, CircleShape),
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(if (isSelected) Color.White.copy(alpha = 0.25f) else childColor, CircleShape)
+                            .clickable { onEditKidPhoto(child) },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = child.name.take(1).uppercase(),
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
-                        )
+                        if (!child.avatarUri.isNullOrBlank()) {
+                            if (child.avatarUri.startsWith("preset:")) {
+                                Text(
+                                    text = child.avatarUri.removePrefix("preset:"),
+                                    fontSize = 18.sp
+                                )
+                            } else {
+                                AsyncImage(
+                                    model = child.avatarUri,
+                                    contentDescription = "${child.name} Photo",
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+                        } else {
+                            Text(
+                                text = child.name.take(1).uppercase(),
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
+                        }
                     }
 
                     // Kid Name
@@ -156,11 +184,29 @@ fun KidProfileBar(
                         )
                     }
 
+                    // Edit Kid Photo Button (shown on selected profile)
+                    if (isSelected) {
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .background(Color.Black.copy(alpha = 0.25f), CircleShape)
+                                .clickable { onEditKidPhoto(child) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CameraAlt,
+                                contentDescription = "Change photo for ${child.name}",
+                                tint = Color.White,
+                                modifier = Modifier.size(13.dp)
+                            )
+                        }
+                    }
+
                     // Remove Child Button (shown on selected profile)
                     if (isSelected) {
                         Box(
                             modifier = Modifier
-                                .size(22.dp)
+                                .size(24.dp)
                                 .background(Color.Black.copy(alpha = 0.25f), CircleShape)
                                 .clickable { childToDelete = child },
                             contentAlignment = Alignment.Center
@@ -208,20 +254,31 @@ fun KidProfileBar(
             }
         }
 
-        // Right side: Sensory Dark Mode Toggle Button
-        IconButton(
-            onClick = onToggleDarkTheme,
-            modifier = Modifier
-                .background(
-                    if (isDarkTheme) Color(0xFF334155) else Color(0xFFE2E8F0),
-                    RoundedCornerShape(12.dp)
-                )
+        // Right side: Time & Weather Display + Sensory Dark Mode Toggle Button
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Icon(
-                imageVector = if (isDarkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
-                contentDescription = if (isDarkTheme) "Switch to Light Mode" else "Switch to Sensory Dim Mode",
-                tint = if (isDarkTheme) Color(0xFFFDE68A) else Color(0xFF475569)
+            TimeWeatherWidget(
+                weather = weather,
+                isDarkTheme = isDarkTheme,
+                onWeatherClick = onWeatherClick
             )
+
+            IconButton(
+                onClick = onToggleDarkTheme,
+                modifier = Modifier
+                    .background(
+                        if (isDarkTheme) Color(0xFF334155) else Color(0xFFE2E8F0),
+                        RoundedCornerShape(12.dp)
+                    )
+            ) {
+                Icon(
+                    imageVector = if (isDarkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
+                    contentDescription = if (isDarkTheme) "Switch to Light Mode" else "Switch to Sensory Dim Mode",
+                    tint = if (isDarkTheme) Color(0xFFFDE68A) else Color(0xFF475569)
+                )
+            }
         }
     }
 

@@ -10,9 +10,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.familyroutines.data.local.entities.*
+import com.familyroutines.data.weather.WeatherInfo
 import com.familyroutines.ui.components.*
 import com.familyroutines.ui.theme.*
 
@@ -38,10 +41,19 @@ fun KioskDashboardScreen(
     assistantResponse: String,
     isModelLoaded: Boolean,
     isDarkTheme: Boolean,
+    weather: WeatherInfo,
+    familyPhotos: List<FamilyPhotoEntity>,
+    rightPaneMode: String,
     onSelectChild: (Long) -> Unit,
     onSelectTab: (String) -> Unit,
     onAddKid: () -> Unit,
     onDeleteChild: (ChildEntity) -> Unit = {},
+    onEditKidPhoto: (ChildEntity) -> Unit = {},
+    onWeatherClick: () -> Unit = {},
+    onSetRightPaneMode: (String) -> Unit = {},
+    onAddFamilyPhoto: () -> Unit = {},
+    onDeleteFamilyPhoto: (FamilyPhotoEntity) -> Unit = {},
+    onUpdateFamilyPhotoCaption: (FamilyPhotoEntity, String) -> Unit = { _, _ -> },
     onAddChore: () -> Unit,
     onAddRoutine: () -> Unit,
     onSelectCalendarDate: (String) -> Unit,
@@ -67,14 +79,17 @@ fun KioskDashboardScreen(
             .background(if (isDarkTheme) DarkBackground else BackgroundSlate)
             .padding(16.dp)
     ) {
-        // TOP HEADER: Child Profile Selector Chips & Sensory Dark Theme Toggle
+        // TOP HEADER: Child Profile Selector Chips, Time & Weather Display, Dark Mode Toggle
         KidProfileBar(
             children = children,
             selectedChildId = selectedChild?.id,
+            weather = weather,
             isDarkTheme = isDarkTheme,
             onSelectChild = onSelectChild,
             onAddKid = onAddKid,
             onDeleteChild = onDeleteChild,
+            onEditKidPhoto = onEditKidPhoto,
+            onWeatherClick = onWeatherClick,
             onToggleDarkTheme = onToggleDarkTheme,
             modifier = Modifier.padding(bottom = 12.dp)
         )
@@ -113,7 +128,8 @@ fun KioskDashboardScreen(
                         val tabs = listOf(
                             Triple("routines", "📋 Routines", Icons.Default.Schedule),
                             Triple("chores", "🧹 Chores & Stars", Icons.Default.CleaningServices),
-                            Triple("calendar", "📅 Wall Calendar", Icons.Default.CalendarMonth)
+                            Triple("calendar", "📅 Wall Calendar", Icons.Default.CalendarMonth),
+                            Triple("family_photos", "🖼️ Family Frame", Icons.Default.PhotoLibrary)
                         )
 
                         tabs.forEach { (tabKey, title, icon) ->
@@ -243,11 +259,22 @@ fun KioskDashboardScreen(
                                 modifier = Modifier.fillMaxSize()
                             )
                         }
+
+                        "family_photos" -> {
+                            FamilyPhotoFrameScreen(
+                                photos = familyPhotos,
+                                isDarkTheme = isDarkTheme,
+                                onAddPhoto = onAddFamilyPhoto,
+                                onDeletePhoto = onDeleteFamilyPhoto,
+                                onUpdateCaption = onUpdateFamilyPhotoCaption,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
                 }
             }
 
-            // --- RIGHT PANE: ROUTINES A.I BRAIN & VOICE MEMORY ENGINE ---
+            // --- RIGHT PANE: ROUTINES A.I BRAIN & AMBIENT FAMILY FRAME ---
             Card(
                 modifier = Modifier
                     .weight(0.95f)
@@ -262,99 +289,160 @@ fun KioskDashboardScreen(
                         .padding(20.dp)
                         .fillMaxSize()
                 ) {
+                    // Right Pane Header Switcher: [🤖 AI Brain] | [🖼️ Family Frame]
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
-                            Text(
-                                text = "Routines A.I Brain",
-                                fontSize = 22.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isDarkTheme) Color(0xFF93C5FD) else PrimaryBlueText
-                            )
-                            Text(
-                                text = if (isModelLoaded) "Gemma 2B Ready (GPU)" else "Keyword Index Mode",
-                                fontSize = 12.sp,
-                                color = if (isModelLoaded) Color(0xFF4ADE80) else Color(0xFFFBBF24)
-                            )
-                        }
-                        IconButton(
-                            onClick = onRecordVoiceNote,
-                            modifier = Modifier.background(PrimaryBlue, RoundedCornerShape(12.dp))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Default.Mic, contentDescription = "Record Note", tint = Color.White)
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth()
-                            .background(
-                                if (isDarkTheme) DarkAssistantInner else Color.White,
-                                RoundedCornerShape(16.dp)
-                            )
-                            .padding(16.dp)
-                    ) {
-                        Text(
-                            text = if (assistantResponse.isBlank()) {
-                                "Ask how to prep meals, sensory quirks, calm-down routines, or rules for ${selectedChild?.name ?: "kids"}..."
-                            } else {
-                                assistantResponse
-                            },
-                            fontSize = 16.sp,
-                            color = if (assistantResponse.isBlank()) {
-                                if (isDarkTheme) DarkTextSecondary else Color.Gray
-                            } else {
-                                if (isDarkTheme) DarkTextPrimary else TextDark
-                            },
-                            lineHeight = 22.sp
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        OutlinedTextField(
-                            value = queryInput,
-                            onValueChange = { queryInput = it },
-                            modifier = Modifier.weight(1f),
-                            placeholder = {
-                                Text(
-                                    "Ask about ${selectedChild?.name ?: "kid"}...",
-                                    color = if (isDarkTheme) DarkTextSecondary else Color.Gray
-                                )
-                            },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = if (isDarkTheme) DarkTextPrimary else TextDark,
-                                unfocusedTextColor = if (isDarkTheme) DarkTextPrimary else TextDark,
-                                focusedContainerColor = if (isDarkTheme) DarkAssistantInner else Color.White,
-                                unfocusedContainerColor = if (isDarkTheme) DarkAssistantInner else Color.White,
-                            ),
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        Button(
-                            onClick = {
-                                if (queryInput.isNotBlank()) {
-                                    onAskQuery(queryInput)
-                                    queryInput = ""
+                            FilterChip(
+                                selected = rightPaneMode == "brain",
+                                onClick = { onSetRightPaneMode("brain") },
+                                label = {
+                                    Text(
+                                        text = "🤖 AI Brain",
+                                        fontWeight = if (rightPaneMode == "brain") FontWeight.Bold else FontWeight.Normal,
+                                        fontSize = 13.sp
+                                    )
                                 }
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.Send,
-                                contentDescription = "Submit Query"
                             )
+
+                            FilterChip(
+                                selected = rightPaneMode == "photo",
+                                onClick = { onSetRightPaneMode("photo") },
+                                label = {
+                                    Text(
+                                        text = "🖼️ Photo Frame",
+                                        fontWeight = if (rightPaneMode == "photo") FontWeight.Bold else FontWeight.Normal,
+                                        fontSize = 13.sp
+                                    )
+                                }
+                            )
+                        }
+
+                        if (rightPaneMode == "brain") {
+                            IconButton(
+                                onClick = onRecordVoiceNote,
+                                modifier = Modifier.background(PrimaryBlue, RoundedCornerShape(12.dp))
+                            ) {
+                                Icon(Icons.Default.Mic, contentDescription = "Record Note", tint = Color.White)
+                            }
+                        } else {
+                            IconButton(
+                                onClick = onAddFamilyPhoto,
+                                modifier = Modifier.background(PrimaryBlue, RoundedCornerShape(12.dp))
+                            ) {
+                                Icon(Icons.Default.AddPhotoAlternate, contentDescription = "Add Photo", tint = Color.White)
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    if (rightPaneMode == "photo") {
+                        // Ambient photo frame inside the right pane
+                        FamilyPhotoFrameScreen(
+                            photos = familyPhotos,
+                            isDarkTheme = isDarkTheme,
+                            onAddPhoto = onAddFamilyPhoto,
+                            onDeletePhoto = onDeleteFamilyPhoto,
+                            onUpdateCaption = onUpdateFamilyPhotoCaption,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        // Standard AI Brain view
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Routines A.I Brain",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isDarkTheme) Color(0xFF93C5FD) else PrimaryBlueText
+                                )
+                                Text(
+                                    text = if (isModelLoaded) "Gemma 2B Ready" else "Keyword Index Mode",
+                                    fontSize = 12.sp,
+                                    color = if (isModelLoaded) Color(0xFF4ADE80) else Color(0xFFFBBF24)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxWidth()
+                                    .background(
+                                        if (isDarkTheme) DarkAssistantInner else Color.White,
+                                        RoundedCornerShape(16.dp)
+                                    )
+                                    .padding(16.dp)
+                            ) {
+                                Text(
+                                    text = if (assistantResponse.isBlank()) {
+                                        "Ask how to prep meals, sensory quirks, calm-down routines, or rules for ${selectedChild?.name ?: "kids"}..."
+                                    } else {
+                                        assistantResponse
+                                    },
+                                    fontSize = 16.sp,
+                                    color = if (assistantResponse.isBlank()) {
+                                        if (isDarkTheme) DarkTextSecondary else Color.Gray
+                                    } else {
+                                        if (isDarkTheme) DarkTextPrimary else TextDark
+                                    },
+                                    lineHeight = 22.sp
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(14.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                OutlinedTextField(
+                                    value = queryInput,
+                                    onValueChange = { queryInput = it },
+                                    modifier = Modifier.weight(1f),
+                                    placeholder = {
+                                        Text(
+                                            "Ask about ${selectedChild?.name ?: "kid"}...",
+                                            color = if (isDarkTheme) DarkTextSecondary else Color.Gray
+                                        )
+                                    },
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedTextColor = if (isDarkTheme) DarkTextPrimary else TextDark,
+                                        unfocusedTextColor = if (isDarkTheme) DarkTextPrimary else TextDark,
+                                        focusedContainerColor = if (isDarkTheme) DarkAssistantInner else Color.White,
+                                        unfocusedContainerColor = if (isDarkTheme) DarkAssistantInner else Color.White,
+                                    ),
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                Button(
+                                    onClick = {
+                                        if (queryInput.isNotBlank()) {
+                                            onAskQuery(queryInput)
+                                            queryInput = ""
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.Send,
+                                        contentDescription = "Submit Query"
+                                    )
+                                }
+                            }
                         }
                     }
                 }

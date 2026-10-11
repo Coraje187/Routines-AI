@@ -65,6 +65,9 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
 
+    // Image Loading (Coil for avatars & family photo frame)
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
     // Room DB
     val roomVersion = "2.6.1"
     implementation("androidx.room:room-runtime:$roomVersion")

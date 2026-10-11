@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.familyroutines.ai.FamilyMemoryEngine
 import com.familyroutines.data.local.entities.*
 import com.familyroutines.data.repository.FamilyRepository
+import com.familyroutines.data.weather.WeatherInfo
+import com.familyroutines.data.weather.WeatherService
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -13,7 +15,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalCoroutinesApi::class)
 class KioskViewModel(
     private val repository: FamilyRepository,
-    private val memoryEngine: FamilyMemoryEngine
+    private val memoryEngine: FamilyMemoryEngine,
+    private val weatherService: WeatherService
 ) : ViewModel() {
 
     val children: StateFlow<List<ChildEntity>> = repository.allChildren
@@ -26,7 +29,7 @@ class KioskViewModel(
     private val _isDarkTheme = MutableStateFlow(false)
     val isDarkTheme: StateFlow<Boolean> = _isDarkTheme.asStateFlow()
 
-    private val _selectedTab = MutableStateFlow("routines") // "routines", "chores", "calendar"
+    private val _selectedTab = MutableStateFlow("routines") // "routines", "chores", "calendar", "family_photos"
     val selectedTab: StateFlow<String> = _selectedTab.asStateFlow()
 
     // Dialog state flags
@@ -48,6 +51,25 @@ class KioskViewModel(
     private val _showVoiceDialog = MutableStateFlow(false)
     val showVoiceDialog: StateFlow<Boolean> = _showVoiceDialog.asStateFlow()
 
+    // Weather & Location State
+    private val _weatherInfo = MutableStateFlow(WeatherInfo(location = weatherService.getSavedLocation()))
+    val weatherInfo: StateFlow<WeatherInfo> = _weatherInfo.asStateFlow()
+
+    private val _showWeatherDialog = MutableStateFlow(false)
+    val showWeatherDialog: StateFlow<Boolean> = _showWeatherDialog.asStateFlow()
+
+    // Kid Photo Edit Dialog State
+    private val _editingKidForPhoto = MutableStateFlow<ChildEntity?>(null)
+    val editingKidForPhoto: StateFlow<ChildEntity?> = _editingKidForPhoto.asStateFlow()
+
+    // Right Pane Switcher ("brain" or "photo")
+    private val _rightPaneMode = MutableStateFlow("brain")
+    val rightPaneMode: StateFlow<String> = _rightPaneMode.asStateFlow()
+
+    // Family Photos
+    val familyPhotos: StateFlow<List<FamilyPhotoEntity>> = repository.allFamilyPhotos
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     init {
         viewModelScope.launch {
             repository.deduplicateChildren()
@@ -58,6 +80,10 @@ class KioskViewModel(
                     _selectedChildId.value = list.first().id
                 }
             }
+        }
+
+        viewModelScope.launch {
+            refreshWeather()
         }
 
         viewModelScope.launch {
@@ -125,10 +151,19 @@ class KioskViewModel(
     // Kid Management
     fun openAddKidDialog() { _showAddKidDialog.value = true }
     fun closeAddKidDialog() { _showAddKidDialog.value = false }
-    fun addKid(name: String, colorHex: String) {
+    fun addKid(name: String, colorHex: String, avatarUri: String? = null) {
         viewModelScope.launch {
-            val id = repository.insertChild(ChildEntity(name = name, colorHex = colorHex, stars = 0))
+            val id = repository.insertChild(ChildEntity(name = name, colorHex = colorHex, avatarUri = avatarUri, stars = 0))
             _selectedChildId.value = id
+        }
+    }
+
+    fun openEditKidPhotoDialog(child: ChildEntity) { _editingKidForPhoto.value = child }
+    fun closeEditKidPhotoDialog() { _editingKidForPhoto.value = null }
+    fun updateChildAvatar(child: ChildEntity, avatarUri: String?) {
+        viewModelScope.launch {
+            repository.updateChild(child.copy(avatarUri = avatarUri))
+            _editingKidForPhoto.value = null
         }
     }
 
@@ -320,6 +355,47 @@ class KioskViewModel(
         }
     }
 
+    // Weather Management
+    fun refreshWeather() {
+        viewModelScope.launch {
+            val res = weatherService.fetchWeather()
+            _weatherInfo.value = res
+        }
+    }
+
+    fun openWeatherDialog() { _showWeatherDialog.value = true }
+    fun closeWeatherDialog() { _showWeatherDialog.value = false }
+    fun updateWeatherLocation(cityName: String, isFahrenheit: Boolean) {
+        weatherService.saveLocation(cityName, isFahrenheit)
+        viewModelScope.launch {
+            val res = weatherService.fetchWeather(cityName, isFahrenheit)
+            _weatherInfo.value = res
+        }
+    }
+
+    // Family Photo Management
+    fun addFamilyPhoto(photoUri: String, caption: String = "") {
+        viewModelScope.launch {
+            repository.insertFamilyPhoto(FamilyPhotoEntity(photoUri = photoUri, caption = caption))
+        }
+    }
+
+    fun deleteFamilyPhoto(photo: FamilyPhotoEntity) {
+        viewModelScope.launch {
+            repository.deleteFamilyPhoto(photo)
+        }
+    }
+
+    fun updateFamilyPhotoCaption(photo: FamilyPhotoEntity, caption: String) {
+        viewModelScope.launch {
+            repository.updateFamilyPhoto(photo.copy(caption = caption))
+        }
+    }
+
+    fun setRightPaneMode(mode: String) {
+        _rightPaneMode.value = mode
+    }
+
     override fun onCleared() {
         super.onCleared()
         memoryEngine.close()
@@ -328,12 +404,13 @@ class KioskViewModel(
 
 class KioskViewModelFactory(
     private val repository: FamilyRepository,
-    private val memoryEngine: FamilyMemoryEngine
+    private val memoryEngine: FamilyMemoryEngine,
+    private val weatherService: com.familyroutines.data.weather.WeatherService
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(KioskViewModel::class.java)) {
-            return KioskViewModel(repository, memoryEngine) as T
+            return KioskViewModel(repository, memoryEngine, weatherService) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

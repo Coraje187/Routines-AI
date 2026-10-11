@@ -73,4 +73,17 @@ interface FamilyDao {
 
     @Delete
     suspend fun deleteNote(note: ParentNoteEntity)
+
+    // --- Family Photos ---
+    @Query("SELECT * FROM family_photos ORDER BY id DESC")
+    fun getAllFamilyPhotos(): Flow<List<FamilyPhotoEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertFamilyPhoto(photo: FamilyPhotoEntity): Long
+
+    @Update
+    suspend fun updateFamilyPhoto(photo: FamilyPhotoEntity)
+
+    @Delete
+    suspend fun deleteFamilyPhoto(photo: FamilyPhotoEntity)
 }

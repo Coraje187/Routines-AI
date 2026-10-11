@@ -21,7 +21,7 @@ import com.familyroutines.ui.theme.*
 fun AddKidDialog(
     isDarkTheme: Boolean,
     onDismiss: () -> Unit,
-    onSave: (name: String, colorHex: String) -> Unit
+    onSave: (name: String, colorHex: String, avatarUri: String?) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     val colorOptions = listOf(
@@ -33,6 +33,8 @@ fun AddKidDialog(
         "#EF4444" to "Red"
     )
     var selectedColor by remember { mutableStateOf(colorOptions.first().first) }
+    val avatarPresets = listOf("🦁", "🦄", "🚀", "🐱", "🐶", "🎨", "⚽", "🌟")
+    var selectedAvatar by remember { mutableStateOf<String?>(null) }
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -64,6 +66,39 @@ fun AddKidDialog(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 )
+
+                Text(
+                    text = "Select Avatar Icon (or set photo after saving)",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (isDarkTheme) DarkTextSecondary else TextMuted
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    avatarPresets.forEach { emoji ->
+                        val isSelected = selectedAvatar == emoji
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(
+                                    if (isSelected) PrimaryBlue else (if (isDarkTheme) Color(0xFF1E293B) else Color(0xFFF1F5F9)),
+                                    CircleShape
+                                )
+                                .border(
+                                    width = if (isSelected) 2.dp else 1.dp,
+                                    color = if (isSelected) Color.White else Color.Transparent,
+                                    shape = CircleShape
+                                )
+                                .clickable { selectedAvatar = if (isSelected) null else emoji },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = emoji, fontSize = 20.sp)
+                        }
+                    }
+                }
 
                 Text(
                     text = "Select Profile Color",
@@ -109,7 +144,7 @@ fun AddKidDialog(
                     Button(
                         onClick = {
                             if (name.isNotBlank()) {
-                                onSave(name.trim(), selectedColor)
+                                onSave(name.trim(), selectedColor, selectedAvatar?.let { "preset:$it" })
                                 onDismiss()
                             }
                         },

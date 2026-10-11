@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -41,7 +42,7 @@ class MainActivity : ComponentActivity() {
 
     private val viewModel: KioskViewModel by viewModels {
         val app = application as FamilyApplication
-        KioskViewModelFactory(app.repository, app.memoryEngine)
+        KioskViewModelFactory(app.repository, app.memoryEngine, app.weatherService)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,6 +65,12 @@ class MainActivity : ComponentActivity() {
                 val assistantResponse by viewModel.assistantResponse.collectAsState()
                 val isModelLoaded by viewModel.isModelLoaded.collectAsState()
 
+                val weather by viewModel.weatherInfo.collectAsState()
+                val showWeatherDialog by viewModel.showWeatherDialog.collectAsState()
+                val familyPhotos by viewModel.familyPhotos.collectAsState()
+                val rightPaneMode by viewModel.rightPaneMode.collectAsState()
+                val editingKidForPhoto by viewModel.editingKidForPhoto.collectAsState()
+
                 val showVoiceDialog by viewModel.showVoiceDialog.collectAsState()
                 val showAddKidDialog by viewModel.showAddKidDialog.collectAsState()
                 val showAddChoreDialog by viewModel.showAddChoreDialog.collectAsState()
@@ -72,6 +79,43 @@ class MainActivity : ComponentActivity() {
 
                 val isListening by isListeningState
                 val recognizedText by recognizedTextState
+
+                // Kid Photo Picker Launcher
+                val kidPhotoPickerLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.GetContent()
+                ) { uri ->
+                    uri?.let { sourceUri ->
+                        val targetChild = editingKidForPhoto ?: return@let
+                        try {
+                            val file = java.io.File(filesDir, "child_${targetChild.id}_avatar_${System.currentTimeMillis()}.jpg")
+                            contentResolver.openInputStream(sourceUri)?.use { input ->
+                                file.outputStream().use { output -> input.copyTo(output) }
+                            }
+                            viewModel.updateChildAvatar(targetChild, file.absolutePath)
+                            Toast.makeText(this@MainActivity, "Photo updated for ${targetChild.name}!", Toast.LENGTH_SHORT).show()
+                        } catch (e: Exception) {
+                            Toast.makeText(this@MainActivity, "Failed to load photo: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+
+                // Family Photo Picker Launcher
+                val familyPhotoPickerLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.GetContent()
+                ) { uri ->
+                    uri?.let { sourceUri ->
+                        try {
+                            val file = java.io.File(filesDir, "family_photo_${System.currentTimeMillis()}.jpg")
+                            contentResolver.openInputStream(sourceUri)?.use { input ->
+                                file.outputStream().use { output -> input.copyTo(output) }
+                            }
+                            viewModel.addFamilyPhoto(file.absolutePath, "Family Memory ❤️")
+                            Toast.makeText(this@MainActivity, "Family photo added!", Toast.LENGTH_SHORT).show()
+                        } catch (e: Exception) {
+                            Toast.makeText(this@MainActivity, "Failed to save photo: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
 
                 Surface(modifier = Modifier.fillMaxSize()) {
                     KioskDashboardScreen(
@@ -85,10 +129,21 @@ class MainActivity : ComponentActivity() {
                         assistantResponse = assistantResponse,
                         isModelLoaded = isModelLoaded,
                         isDarkTheme = isDarkTheme,
+                        weather = weather,
+                        familyPhotos = familyPhotos,
+                        rightPaneMode = rightPaneMode,
                         onSelectChild = { viewModel.selectChild(it) },
                         onSelectTab = { viewModel.selectTab(it) },
                         onAddKid = { viewModel.openAddKidDialog() },
                         onDeleteChild = { viewModel.deleteChild(it) },
+                        onEditKidPhoto = { viewModel.openEditKidPhotoDialog(it) },
+                        onWeatherClick = { viewModel.openWeatherDialog() },
+                        onSetRightPaneMode = { viewModel.setRightPaneMode(it) },
+                        onAddFamilyPhoto = { familyPhotoPickerLauncher.launch("image/*") },
+                        onDeleteFamilyPhoto = { viewModel.deleteFamilyPhoto(it) },
+                        onUpdateFamilyPhotoCaption = { photo, caption ->
+                            viewModel.updateFamilyPhotoCaption(photo, caption)
+                        },
                         onAddChore = { viewModel.openAddChoreDialog() },
                         onAddRoutine = { viewModel.openAddRoutineDialog() },
                         onSelectCalendarDate = { viewModel.setSelectedCalendarDate(it) },
@@ -111,8 +166,39 @@ class MainActivity : ComponentActivity() {
                         AddKidDialog(
                             isDarkTheme = isDarkTheme,
                             onDismiss = { viewModel.closeAddKidDialog() },
-                            onSave = { name, colorHex ->
-                                viewModel.addKid(name, colorHex)
+                            onSave = { name, colorHex, avatarUri ->
+                                viewModel.addKid(name, colorHex, avatarUri)
+                            }
+                        )
+                    }
+
+                    // Edit Kid Photo Dialog
+                    if (editingKidForPhoto != null) {
+                        val child = editingKidForPhoto!!
+                        EditKidPhotoDialog(
+                            child = child,
+                            isDarkTheme = isDarkTheme,
+                            onPickFromGallery = {
+                                kidPhotoPickerLauncher.launch("image/*")
+                            },
+                            onSelectPresetAvatar = { emoji ->
+                                viewModel.updateChildAvatar(child, "preset:$emoji")
+                            },
+                            onRemovePhoto = {
+                                viewModel.updateChildAvatar(child, null)
+                            },
+                            onDismiss = { viewModel.closeEditKidPhotoDialog() }
+                        )
+                    }
+
+                    // Weather & Location Dialog
+                    if (showWeatherDialog) {
+                        WeatherLocationDialog(
+                            currentWeather = weather,
+                            isDarkTheme = isDarkTheme,
+                            onDismiss = { viewModel.closeWeatherDialog() },
+                            onSaveLocation = { city, useFahrenheit ->
+                                viewModel.updateWeatherLocation(city, useFahrenheit)
                             }
                         )
                     }

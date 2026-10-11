@@ -36,6 +36,21 @@
 - **On-Device Inference**: Powered by **Gemma 2 2B** via Google MediaPipe Tasks GenAI running entirely on-device (zero cloud subscription, complete privacy).
 - **Graceful Fallback**: Automatically operates in high-speed **Keyword Index Mode** if LLM weights are not loaded.
 
+### 📸 6. Kid Photos & Avatar Presets
+- **Custom Photo Upload**: Pick photos from the tablet gallery or camera roll to set as profile pictures next to each child's name.
+- **Permanent Local Storage**: Photos are copied directly into the app's internal sandbox, ensuring fast offline loading and zero permission loss across tablet reboots.
+- **Fun Avatar Presets**: Choose from playful emoji avatars (🦁, 🦄, 🚀, 🐱, 🦖, etc.) if you don't have a photo ready.
+
+### ⛅ 7. Live Wall Clock & Local Weather
+- **Live Digital Clock & Date**: Large, high-visibility digital wall clock updating in real-time (`2:24 PM • Sun, Oct 11`).
+- **Zero-Key Local Weather**: Displays current temperature, weather conditions, and location using Open-Meteo.
+- **Customizable Area**: Tap the weather badge to easily change your city/area and toggle between Fahrenheit (°F) and Celsius (°C).
+
+### 🖼️ 8. Digital Family Photo Frame
+- **Ambient Kiosk Photo Display**: Switch the right dashboard pane from AI Brain to an ambient digital photo frame that displays family memories on the wall all day.
+- **Full-Size Gallery Tab**: Dedicated `🖼️ Family Frame` navigation tab for full-resolution photos, captions, and thumbnails.
+- **Auto-Advancing Slideshow**: Optional smooth auto-rotating slideshow for revolving family vacation and milestone memories.
+
 ---
 
 ## 🛠️ Architecture & Tech Stack
