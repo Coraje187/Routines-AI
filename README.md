@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/License-MIT-orange.svg)](LICENSE)
 [![Zero-Subscription](https://img.shields.io/badge/Subscription-100%25_Free_&_Offline-success.svg)](#)
 
-> **Routines AI** is an open-source, subscription-free Android kiosk wall calendar, visual routine board, and shared family memory engine built for neurodivergent households and busy families. Inspired loosely by Skylight Calendar and powered by local on-device AI (Google Gemma 2 2B) and Genesis OS design primitives.
+> **Routines AI** is an open-source, subscription-free Android kiosk wall calendar, visual routine board, and shared family memory engine built for neurodivergent households and busy families. Powered by local on-device AI (Google Gemma 2 2B) and Genesis OS design primitives.
 
 ---
 

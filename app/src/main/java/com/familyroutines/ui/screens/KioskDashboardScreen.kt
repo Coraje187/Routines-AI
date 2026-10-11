@@ -99,7 +99,7 @@ fun KioskDashboardScreen(
                         .padding(20.dp)
                         .fillMaxSize()
                 ) {
-                    // Navigation Tabs (Skylight style)
+                    // Navigation Tabs
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()

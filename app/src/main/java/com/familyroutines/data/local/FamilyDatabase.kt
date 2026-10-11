@@ -96,7 +96,7 @@ abstract class FamilyDatabase : RoomDatabase() {
                 dao.insertChore(ChoreEntity(childId = mayaId, title = "20 minutes reading time", iconCategory = "reading", pointValue = 20, orderIndex = 2))
                 dao.insertChore(ChoreEntity(childId = mayaId, title = "Water the indoor plants", iconCategory = "general", pointValue = 10, orderIndex = 3))
 
-                // --- Family Calendar Events (Skylight style, across October 2026) ---
+                // --- Family Calendar Events (Interactive wall calendar, across October 2026) ---
                 dao.insertCalendarEvent(CalendarEventEntity(childId = null, title = "School Bus Pick-up", timeSlot = "7:45 AM", category = "school", dayLabel = "Today", dateString = "2026-10-10", colorHex = "#F59E0B"))
                 dao.insertCalendarEvent(CalendarEventEntity(childId = leoId, title = "Speech & Language Therapy", timeSlot = "10:30 AM - 11:15 AM", category = "therapy", dayLabel = "Today", dateString = "2026-10-10", colorHex = "#3B82F6"))
                 dao.insertCalendarEvent(CalendarEventEntity(childId = null, title = "Family Dinner & Quiet Time", timeSlot = "6:00 PM - 7:00 PM", category = "family", dayLabel = "Today", dateString = "2026-10-10", colorHex = "#10B981"))
