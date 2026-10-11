@@ -1,0 +1,17 @@
+package com.familyroutines
+
+import android.app.Application
+import com.familyroutines.ai.FamilyMemoryEngine
+import com.familyroutines.data.local.FamilyDatabase
+import com.familyroutines.data.repository.FamilyRepository
+
+class FamilyApplication : Application() {
+
+    val database by lazy { FamilyDatabase.getDatabase(this) }
+    val repository by lazy { FamilyRepository(database.familyDao()) }
+    val memoryEngine by lazy { FamilyMemoryEngine(this) }
+
+    override fun onCreate() {
+        super.onCreate()
+    }
+}
