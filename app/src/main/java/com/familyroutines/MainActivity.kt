@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
 
     private val viewModel: KioskViewModel by viewModels {
         val app = application as FamilyApplication
-        KioskViewModelFactory(app.repository, app.memoryEngine, app.weatherService)
+        KioskViewModelFactory(app.repository, app.memoryEngine, app.weatherService, app.userPreferences)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

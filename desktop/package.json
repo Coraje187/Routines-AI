@@ -1,0 +1,51 @@
+{
+  "name": "routines-ai-desktop",
+  "version": "1.0.0",
+  "description": "Routines AI - Cross-platform Wall Calendar, Visual Routine Board & Family Memory Kiosk for PC, Linux & Apple macOS",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "electron test-desktop.js",
+    "web": "node server.js",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac",
+    "dist:linux": "electron-builder --linux"
+  },
+  "keywords": [
+    "routines-ai",
+    "family-calendar",
+    "adhd",
+    "autism",
+    "sensory",
+    "kiosk",
+    "genesis-os",
+    "cross-platform",
+    "electron"
+  ],
+  "author": "Routines AI Team",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.routinesai.kiosk",
+    "productName": "Routines AI",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": ["nsis", "portable"]
+    },
+    "mac": {
+      "target": ["dmg", "zip"],
+      "category": "public.app-category.productivity"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Utility"
+    }
+  }
+}

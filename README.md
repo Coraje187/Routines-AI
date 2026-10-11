@@ -1,12 +1,15 @@
 # Routines AI ⚡
 
-[![Android](https://img.shields.io/badge/Platform-Android_11+_|_Fire_OS_8-brightgreen.svg)](https://developer.android.com)
-[![Compose](https://img.shields.io/badge/UI-Jetpack_Compose-blue.svg)](https://developer.android.com/jetpack/compose)
+[![Android](https://img.shields.io/badge/Platform-Android_|_Fire_OS-brightgreen.svg)](https://developer.android.com)
+[![Windows](https://img.shields.io/badge/Platform-Windows_PC-0078D6.svg)](#-pc-linux--apple-macos-desktop)
+[![Apple](https://img.shields.io/badge/Platform-macOS_|_Apple-black.svg)](#-pc-linux--apple-macos-desktop)
+[![Linux](https://img.shields.io/badge/Platform-Linux-FCC624.svg)](#-pc-linux--apple-macos-desktop)
+[![Compose](https://img.shields.io/badge/UI-Jetpack_Compose_|_Genesis_OS-blue.svg)](https://developer.android.com/jetpack/compose)
 [![AI](https://img.shields.io/badge/AI-Gemma_2B_|_MediaPipe_GenAI-purple.svg)](https://ai.google.dev/gemma)
 [![License](https://img.shields.io/badge/License-MIT-orange.svg)](LICENSE)
 [![Zero-Subscription](https://img.shields.io/badge/Subscription-100%25_Free_&_Offline-success.svg)](#)
 
-> **Routines AI** is an open-source, subscription-free Android kiosk wall calendar, visual routine board, and shared family memory engine built for neurodivergent households and busy families. Powered by local on-device AI (Google Gemma 2 2B) and Genesis OS design primitives.
+> **Routines AI** is an open-source, subscription-free wall calendar, visual routine board, and shared family memory engine built for neurodivergent households and busy families. Available as an **Android tablet APK** and as a **cross-platform desktop application for Windows PC, Linux, and Apple macOS**. Powered by local AI and Genesis OS design primitives.
 
 ---
 
@@ -28,8 +31,9 @@
 - **PECS-Inspired Structure**: Clear visual "First-Then" progression card that highlights what to do now and what comes next.
 - **Customizable Routine Items**: Morning, afternoon, and bedtime buckets with sensory accommodations (e.g., comfortable socks, dim lights, bubblegum toothpaste).
 
-### 🌓 4. Sensory Dim / High-Contrast Dark Theme
-- One-tap toggle for low-stimulation dark mode, essential for sensory-sensitive children and nighttime wall kiosk display.
+### 🌓 4. Sensory Dim / High-Contrast Dark Theme (Persistent)
+- **Low-Stimulation Mode**: One-tap toggle for low-stimulation dark mode, essential for sensory-sensitive children and nighttime wall kiosk display.
+- **Hardware Reboot Persistence**: Your selected theme preference is permanently saved to on-device storage (`UserPreferences` on Android, `localStorage` on Desktop), remembering your dark or light mode selection across device reboots and app launches without needing to be reset.
 
 ### 🧠 5. Routines AI Brain (Local Family Memory Engine)
 - **Shared Parent Knowledge**: Captures feeding quirks, sensory triggers, and calm-down protocols logged by parents via speech-to-text or typed notes.
@@ -51,13 +55,18 @@
 - **Full-Size Gallery Tab**: Dedicated `🖼️ Family Frame` navigation tab for full-resolution photos, captions, and thumbnails.
 - **Auto-Advancing Slideshow**: Optional smooth auto-rotating slideshow for revolving family vacation and milestone memories.
 
+### 💻 9. Cross-Platform Desktop & PC Showcase
+- **Windows PC, Linux & Apple macOS**: Showcase and run Routines AI directly on your PC or desktop monitor without needing a physical Android tablet.
+- **One-Click PC Launcher**: Double-click `start-pc.bat` on Windows or `./start-linux-mac.sh` on Linux/Mac to immediately launch the app.
+- **Installers & Packages**: Ready to package into native installers (`.exe` on Windows, `.dmg` on macOS, `.AppImage` / `.deb` on Linux) or run in kiosk web mode.
+
 ---
 
 ## 🛠️ Architecture & Tech Stack
 
 ```
 family-routines-app/
-├── app/
+├── app/                              # Android Tablet Kiosk App (Jetpack Compose)
 │   ├── src/main/
 │   │   ├── AndroidManifest.xml
 │   │   ├── java/com/familyroutines/
@@ -68,72 +77,94 @@ family-routines-app/
 │   │   │   │   └── PromptBuilder.kt          # Grounded assistant prompt template
 │   │   │   ├── data/
 │   │   │   │   ├── local/
-│   │   │   │   │   ├── FamilyDatabase.kt     # Room SQLite Database (Version 3)
+│   │   │   │   │   ├── FamilyDatabase.kt     # Room SQLite Database (Version 4)
 │   │   │   │   │   ├── FamilyDao.kt          # Reactive Room DAOs (Flows)
-│   │   │   │   │   └── entities/             # Child, Routine, Chore, Calendar, Note
+│   │   │   │   │   ├── UserPreferences.kt    # SharedPreferences theme & state persistence
+│   │   │   │   │   └── entities/             # Child, Routine, Chore, Calendar, Photo, Note
 │   │   │   │   └── repository/
 │   │   │   │       └── FamilyRepository.kt   # Clean repository layer
 │   │   │   ├── ui/
-│   │   │   │   ├── components/
-│   │   │   │   │   ├── KidProfileBar.kt      # Genesis OS badge & profile switcher
-│   │   │   │   │   ├── MonthCalendarView.kt  # Full 7xN month grid & day agenda
-│   │   │   │   │   ├── ChoreItemCard.kt      # Visual chore cards with star values
-│   │   │   │   │   ├── RoutineItemCard.kt    # Checkable routine items
-│   │   │   │   │   ├── FirstThenBoard.kt     # PECS First/Then progression card
-│   │   │   │   │   ├── AddEventDialog.kt     # Advance event scheduling modal
-│   │   │   │   │   ├── AddChoreDialog.kt     # Custom chore creator modal
-│   │   │   │   │   ├── AddKidDialog.kt       # Profile creator modal
-│   │   │   │   │   └── VoiceNoteDialog.kt    # Speech-to-text voice logging modal
-│   │   │   │   ├── screens/
-│   │   │   │   │   └── KioskDashboardScreen.kt# 2-pane 11-inch landscape kiosk layout
-│   │   │   │   └── viewmodel/
-│   │   │   │       └── KioskViewModel.kt     # State management & reactive streams
+│   │   │   │   ├── components/               # Compose widgets (Calendar, Chores, Photos, Clock)
+│   │   │   │   ├── screens/                  # 2-pane 11-inch landscape kiosk layout
+│   │   │   │   └── viewmodel/                # KioskViewModel reactive state
 │   │   │   └── voice/
-│   │   │       └── ParentVoiceListener.kt    # Android SpeechRecognizer integration
+│   │   │       └── ParentVoiceListener.kt    # Speech recognition integration
 │   │   └── res/
-│   │       ├── mipmap-*/                     # Genesis OS Cyber-Lattice Launcher Icons
-│   │       └── values/strings.xml
 │   └── build.gradle.kts
+├── desktop/                          # PC (Windows), Linux & Apple macOS Desktop App
+│   ├── index.html                    # Genesis OS Kiosk UI matching Android tablet
+│   ├── styles.css                    # High-contrast & low-stimulation sensory theme
+│   ├── app.js                        # State engine, calendar, weather & AI memory retrieval
+│   ├── main.js                       # Electron cross-platform desktop process
+│   ├── server.js                     # Zero-dependency local kiosk web server
+│   ├── test-desktop.js               # Automated headless UI validation test
+│   └── package.json                  # Desktop build & packaging scripts
+├── start-pc.bat                      # One-click Windows PC launcher
+├── start-linux-mac.sh                # One-click Linux & macOS launcher
 ├── build.gradle.kts
 └── settings.gradle.kts
 ```
 
-- **UI**: Jetpack Compose (BOM 2024.02.00) with Material 3
-- **Database**: Room Database 2.6.1 with Kotlin Coroutines & `Flow`
-- **AI / LLM**: MediaPipe Tasks GenAI (`com.google.mediapipe:tasks-genai:0.10.27`)
-- **Speech**: Android `SpeechRecognizer` with `RECORD_AUDIO` permission
+- **Android Engine**: Kotlin, Jetpack Compose, Material 3, Room SQLite, MediaPipe GenAI.
+- **Desktop Engine**: Electron, HTML5/CSS3/ES6+, Web Audio API, Open-Meteo REST API, LocalStorage persistence.
 
 ---
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### 🖥️ Option 1: Run on Windows PC, Linux, or Apple macOS
+
+#### Quick One-Click Launch:
+- **Windows PC**: Double-click `start-pc.bat` (or run `./start-pc.bat` in terminal).
+- **Linux & Apple macOS**: Run `./start-linux-mac.sh` in terminal.
+
+#### Manual Terminal Launch:
+```bash
+cd desktop
+
+# 1. Install desktop packages:
+npm install
+
+# 2. Run as native desktop application:
+npm start
+
+# Or run zero-dependency local web kiosk:
+npm run web
+```
+
+#### Package Desktop Installers:
+```bash
+cd desktop
+npm run dist:win     # Generates Windows .exe installer and portable binary
+npm run dist:mac     # Generates Apple macOS .dmg disk image
+npm run dist:linux   # Generates Linux .AppImage and .deb packages
+```
+
+---
+
+### 📱 Option 2: Build & Install Android Tablet APK
+
+#### Prerequisites
 - **Android SDK**: API 26 (minSdk) to API 34 (compileSdk/targetSdk)
 - **JDK**: Java 17 or Java 21
-- **Gradle**: 8.4+
+- **Connected Tablet**: Amazon Fire Max 11, Fire HD 10, or Android 11+ tablet
 
-### Build & Install
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/Coraje187/Routines-AI.git
-   cd Routines-AI
-   ```
-
-2. **Assemble the Debug APK:**
+#### Build & Install:
+1. **Assemble Debug APK:**
    ```bash
    ./gradlew assembleDebug
    ```
 
-3. **Install to your connected tablet via ADB:**
+2. **Install to tablet via ADB:**
    ```bash
    adb install -r app/build/outputs/apk/debug/app-debug.apk
    ```
 
-4. **Launch the application:**
+3. **Launch application:**
    ```bash
    adb shell am start -n com.familyroutines/.MainActivity
    ```
+
 
 ---
 

@@ -13,3 +13,5 @@ app/build/
 *.ap_
 *.dex
 *.bin
+desktop/node_modules/
+desktop/dist/

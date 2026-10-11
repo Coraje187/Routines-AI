@@ -11,6 +11,7 @@ class FamilyApplication : Application() {
     val repository by lazy { FamilyRepository(database.familyDao()) }
     val memoryEngine by lazy { FamilyMemoryEngine(this) }
     val weatherService by lazy { com.familyroutines.data.weather.WeatherService(this) }
+    val userPreferences by lazy { com.familyroutines.data.local.UserPreferences(this) }
 
     override fun onCreate() {
         super.onCreate()

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Routines AI - Family Wall Kiosk</title>
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme">
+  <!-- Top Navigation & Status Bar -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="brand-badge">
+        <div class="brand-icon">G</div>
+        <span class="brand-text">Routines AI</span>
+      </div>
+
+      <!-- Kid Profile Switcher -->
+      <div class="kid-selector" id="kidSelector">
+        <!-- Dynamically rendered -->
+      </div>
+      <button class="btn-add-kid" id="btnAddKid" title="Add Child Profile">+ Add Kid</button>
+    </div>
+
+    <div class="header-right">
+      <!-- Live Wall Clock -->
+      <div class="clock-widget" id="clockWidget">
+        <span class="clock-time" id="clockTime">--:-- --</span>
+        <span class="clock-divider">•</span>
+        <span class="clock-date" id="clockDate">---, --- --</span>
+      </div>
+
+      <!-- Live Weather Widget -->
+      <button class="weather-widget" id="weatherWidget" title="Click to change weather location">
+        <span class="weather-icon" id="weatherIcon">☀️</span>
+        <span class="weather-temp" id="weatherTemp">72°F</span>
+        <span class="weather-city" id="weatherCity">Austin, Texas</span>
+      </button>
+
+      <!-- Theme Switcher -->
+      <button class="btn-theme-toggle" id="btnThemeToggle" title="Toggle High-Contrast / Dim Theme">
+        <span id="themeToggleIcon">☀️</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main 2-Pane Kiosk Container -->
+  <main class="kiosk-container">
+    <!-- LEFT PANE: Kiosk Workboard (Tabs) -->
+    <section class="kiosk-pane pane-left">
+      <!-- Tab Navigation Navigation Bar -->
+      <nav class="pane-tabs">
+        <button class="tab-btn active" data-tab="routines">
+          <span class="tab-icon">📋</span> Routines
+        </button>
+        <button class="tab-btn" data-tab="chores">
+          <span class="tab-icon">🧹</span> Chores & Stars
+        </button>
+        <button class="tab-btn" data-tab="calendar">
+          <span class="tab-icon">📅</span> Wall Calendar
+        </button>
+        <button class="tab-btn" data-tab="family-frame">
+          <span class="tab-icon">🖼️</span> Family Frame
+        </button>
+      </nav>
+
+      <!-- TAB 1: Routines Screen -->
+      <div class="tab-content active" id="tab-routines">
+        <div class="section-header">
+          <h2 class="section-title" id="routinesSectionTitle">Leo's Routines</h2>
+          <button class="btn-primary" id="btnAddRoutine">+ Add Routine</button>
+        </div>
+
+        <!-- First-Then Card -->
+        <div class="first-then-card" id="firstThenCard">
+          <div class="ft-step ft-first">
+            <span class="ft-tag">FIRST</span>
+            <span class="ft-text" id="ftFirstText">Put on comfortable socks</span>
+          </div>
+          <div class="ft-arrow">➔</div>
+          <div class="ft-step ft-then">
+            <span class="ft-tag">THEN</span>
+            <span class="ft-text" id="ftThenText">Warm bath with dim lights</span>
+          </div>
+        </div>
+
+        <!-- Routine Item List -->
+        <div class="routine-list" id="routineList">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- TAB 2: Chores & Stars Screen -->
+      <div class="tab-content" id="tab-chores">
+        <div class="section-header">
+          <h2 class="section-title" id="choresSectionTitle">Leo's Chores & Star Rewards</h2>
+          <button class="btn-primary" id="btnAddChore">+ Add Chore</button>
+        </div>
+
+        <div class="star-summary-banner">
+          <span class="star-icon-big">🌟</span>
+          <span id="starSummaryText">Leo has earned <strong>40 Stars</strong> this week! Keep it up!</span>
+        </div>
+
+        <div class="chore-grid" id="choreGrid">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- TAB 3: Wall Calendar Screen -->
+      <div class="tab-content" id="tab-calendar">
+        <div class="calendar-header-bar">
+          <div class="cal-nav">
+            <button class="btn-icon" id="calPrevMonth" title="Previous Month">◀</button>
+            <h2 class="cal-month-title" id="calMonthTitle">October 2026</h2>
+            <button class="btn-icon" id="calNextMonth" title="Next Month">▶</button>
+          </div>
+          <button class="btn-primary" id="btnAddEvent">+ Add Event</button>
+        </div>
+
+        <!-- 7-Day Month Grid -->
+        <div class="calendar-table">
+          <div class="cal-weekdays">
+            <span>SUN</span><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span>
+          </div>
+          <div class="cal-grid" id="calGrid">
+            <!-- 35 or 42 calendar day cells -->
+          </div>
+        </div>
+
+        <!-- Day Agenda Drawer -->
+        <div class="cal-agenda" id="calAgenda">
+          <h3 class="agenda-title" id="agendaTitle">Schedule for Today</h3>
+          <div class="agenda-events" id="agendaEvents">
+            <!-- Day events list -->
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: Family Frame Tab -->
+      <div class="tab-content" id="tab-family-frame">
+        <div class="section-header">
+          <h2 class="section-title">🖼️ Family Memory Wall</h2>
+          <div class="header-actions">
+            <button class="btn-secondary" id="btnToggleSlideshow">▶ Start Slideshow</button>
+            <button class="btn-primary" id="btnAddPhotoFull">+ Add Photo</button>
+          </div>
+        </div>
+        <div class="gallery-full-container">
+          <div class="gallery-main-view" id="galleryMainView">
+            <img id="galleryMainImg" src="" alt="Family Memory">
+            <div class="gallery-caption-overlay">
+              <span id="galleryCaptionText">Our Family Adventures</span>
+              <span id="galleryDateText">2026</span>
+            </div>
+          </div>
+          <div class="gallery-thumbs" id="galleryThumbs">
+            <!-- Thumbnails -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANE: Dual AI Brain / Ambient Photo Frame -->
+    <section class="kiosk-pane pane-right">
+      <div class="pane-mode-switch">
+        <button class="mode-pill active" id="modeAiBrain" data-mode="ai">
+          <span>🤖</span> AI Brain
+        </button>
+        <button class="mode-pill" id="modePhotoFrame" data-mode="photo">
+          <span>🖼️</span> Photo Frame
+        </button>
+      </div>
+
+      <!-- AI Brain View -->
+      <div class="side-view active" id="viewAiBrain">
+        <div class="ai-header">
+          <h2 class="ai-title">Routines A.I Brain</h2>
+          <span class="ai-badge" id="aiModeBadge">Keyword Index Mode</span>
+        </div>
+        <p class="ai-subtitle" id="aiSubtitle">
+          Ask how to prep meals, sensory quirks, calm-down routines, or rules for Leo...
+        </p>
+
+        <!-- Quick prompt chips -->
+        <div class="quick-chips">
+          <button class="chip" data-query="bedtime routine and calm down">Bedtime protocol</button>
+          <button class="chip" data-query="sensory triggers and textures">Sensory triggers</button>
+          <button class="chip" data-query="reward rule and star points">Reward rules</button>
+          <button class="chip" data-query="favorite foods and meal prep">Meal prep</button>
+        </div>
+
+        <!-- Chat history messages -->
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-bubble ai">
+            <strong>Routines Brain:</strong> Ready to assist your household! Tap a quick chip or type below to query calm-down routines, sensory needs, or schedule notes.
+          </div>
+        </div>
+
+        <!-- Chat input bar with Parent Voice Note button -->
+        <div class="ai-input-bar">
+          <button class="btn-mic" id="btnVoiceLog" title="Record Parent Voice Note">🎙️</button>
+          <input type="text" id="aiInput" placeholder="Ask about Leo..." />
+          <button class="btn-send" id="btnAiSend">➤</button>
+        </div>
+      </div>
+
+      <!-- Ambient Photo Frame View -->
+      <div class="side-view" id="viewPhotoFrame">
+        <div class="ambient-frame-header">
+          <span class="ambient-title">🖼️ Family Photo Frame</span>
+          <button class="btn-primary btn-sm" id="btnAddPhotoAmbient">+ Add Photo</button>
+        </div>
+        <div class="ambient-frame-card" id="ambientFrameCard">
+          <div class="ambient-photo-wrapper">
+            <img id="ambientPhotoImg" src="" alt="Ambient Family Photo">
+          </div>
+          <div class="ambient-photo-info">
+            <span id="ambientCaption">Your Family Memories Live Here</span>
+            <span id="ambientSub">Add photos of the kids, pets, and trips for ambient wall display</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODALS -->
+
+  <!-- Add Kid Modal -->
+  <dialog class="app-modal" id="modalAddKid">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Add Child Profile</h3>
+        <button class="modal-close" data-close="modalAddKid">✕</button>
+      </div>
+      <div class="modal-body">
+        <label>Child Name</label>
+        <input type="text" id="newKidName" placeholder="e.g. Liam" />
+        <label>Select Fun Avatar</label>
+        <div class="avatar-grid" id="avatarGrid">
+          <button class="avatar-option active" data-avatar="🦁">🦁</button>
+          <button class="avatar-option" data-avatar="🦄">🦄</button>
+          <button class="avatar-option" data-avatar="🚀">🚀</button>
+          <button class="avatar-option" data-avatar="🐱">🐱</button>
+          <button class="avatar-option" data-avatar="🦖">🦖</button>
+          <button class="avatar-option" data-avatar="🐶">🐶</button>
+          <button class="avatar-option" data-avatar="⚽">⚽</button>
+          <button class="avatar-option" data-avatar="🎨">🎨</button>
+        </div>
+        <label>Or Upload Photo</label>
+        <input type="file" id="newKidPhotoInput" accept="image/*" />
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="modalAddKid">Cancel</button>
+        <button class="btn-primary" id="btnSaveNewKid">Add Profile</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Edit Kid Photo Modal -->
+  <dialog class="app-modal" id="modalEditKidPhoto">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="editKidPhotoTitle">Update Photo & Avatar</h3>
+        <button class="modal-close" data-close="modalEditKidPhoto">✕</button>
+      </div>
+      <div class="modal-body">
+        <label>Pick Avatar Preset</label>
+        <div class="avatar-grid" id="editAvatarGrid">
+          <button class="avatar-option" data-avatar="🦁">🦁</button>
+          <button class="avatar-option" data-avatar="🦄">🦄</button>
+          <button class="avatar-option" data-avatar="🚀">🚀</button>
+          <button class="avatar-option" data-avatar="🐱">🐱</button>
+          <button class="avatar-option" data-avatar="🦖">🦖</button>
+          <button class="avatar-option" data-avatar="🐶">🐶</button>
+          <button class="avatar-option" data-avatar="⚽">⚽</button>
+          <button class="avatar-option" data-avatar="🎨">🎨</button>
+        </div>
+        <label>Or Upload Custom Photo</label>
+        <input type="file" id="editKidPhotoInput" accept="image/*" />
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="modalEditKidPhoto">Cancel</button>
+        <button class="btn-primary" id="btnSaveEditKidPhoto">Save Photo</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Add Routine Modal -->
+  <dialog class="app-modal" id="modalAddRoutine">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Add Routine Item</h3>
+        <button class="modal-close" data-close="modalAddRoutine">✕</button>
+      </div>
+      <div class="modal-body">
+        <label>Routine Description</label>
+        <input type="text" id="newRoutineTitle" placeholder="e.g. Put shoes in cubby" />
+        <label>Time Bucket</label>
+        <select id="newRoutineBucket">
+          <option value="Morning">Morning</option>
+          <option value="Afternoon">Afternoon</option>
+          <option value="Bedtime">Bedtime</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="modalAddRoutine">Cancel</button>
+        <button class="btn-primary" id="btnSaveNewRoutine">Add Routine</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Add Chore Modal -->
+  <dialog class="app-modal" id="modalAddChore">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Add Chore & Star Reward</h3>
+        <button class="modal-close" data-close="modalAddChore">✕</button>
+      </div>
+      <div class="modal-body">
+        <label>Chore Description</label>
+        <input type="text" id="newChoreTitle" placeholder="e.g. Put away art supplies" />
+        <label>Category</label>
+        <select id="newChoreCategory">
+          <option value="Bed">🛏️ Bed & Room</option>
+          <option value="Toys">🧸 Toys & Games</option>
+          <option value="Pet">🐱 Pet Care</option>
+          <option value="Dishes">🍽️ Dishes & Kitchen</option>
+          <option value="Laundry">🧺 Laundry & Clothes</option>
+          <option value="Reading">📚 Reading & Homework</option>
+        </select>
+        <label>Star Reward Points</label>
+        <input type="number" id="newChorePoints" value="10" min="5" max="50" step="5" />
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="modalAddChore">Cancel</button>
+        <button class="btn-primary" id="btnSaveNewChore">Add Chore</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Add Calendar Event Modal -->
+  <dialog class="app-modal" id="modalAddEvent">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Add Calendar Event</h3>
+        <button class="modal-close" data-close="modalAddEvent">✕</button>
+      </div>
+      <div class="modal-body">
+        <label>Event Title</label>
+        <input type="text" id="newEventTitle" placeholder="e.g. Occupational Therapy" />
+        <label>Date</label>
+        <input type="date" id="newEventDate" />
+        <label>Time</label>
+        <input type="time" id="newEventTime" value="15:30" />
+        <label>Assign to Child</label>
+        <select id="newEventKid">
+          <!-- Populated dynamically -->
+        </select>
+        <label>Category</label>
+        <select id="newEventCategory">
+          <option value="Therapy">🧩 Therapy</option>
+          <option value="School">🏫 School</option>
+          <option value="Activity">⚽ Activity</option>
+          <option value="Medical">🏥 Medical</option>
+          <option value="Family">🏠 Family</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="modalAddEvent">Cancel</button>
+        <button class="btn-primary" id="btnSaveNewEvent">Schedule Event</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Weather Location Settings Modal -->
+  <dialog class="app-modal" id="modalWeather">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Weather Location & Settings</h3>
+        <button class="modal-close" data-close="modalWeather">✕</button>
+      </div>
+      <div class="modal-body">
+        <label>City / Area Name</label>
+        <input type="text" id="weatherInputCity" value="Austin, Texas" />
+        <div class="coord-row">
+          <div>
+            <label>Latitude</label>
+            <input type="number" id="weatherInputLat" step="0.0001" value="30.2672" />
+          </div>
+          <div>
+            <label>Longitude</label>
+            <input type="number" id="weatherInputLon" step="0.0001" value="-97.7431" />
+          </div>
+        </div>
+        <label>Temperature Unit</label>
+        <select id="weatherInputUnit">
+          <option value="fahrenheit">Fahrenheit (°F)</option>
+          <option value="celsius">Celsius (°C)</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="modalWeather">Cancel</button>
+        <button class="btn-primary" id="btnSaveWeatherSettings">Save & Refresh</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Add Family Photo Modal -->
+  <dialog class="app-modal" id="modalAddPhoto">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Add Family Memory Photo</h3>
+        <button class="modal-close" data-close="modalAddPhoto">✕</button>
+      </div>
+      <div class="modal-body">
+        <label>Caption / Memory Title</label>
+        <input type="text" id="newPhotoCaption" placeholder="e.g. Zoo trip with grandma" />
+        <label>Photo File</label>
+        <input type="file" id="newPhotoFileInput" accept="image/*" />
+        <label>Or Preset Memory</label>
+        <div class="sample-photo-picker">
+          <button class="sample-photo-btn" data-preset="nature">🌲 Forest Walk</button>
+          <button class="sample-photo-btn" data-preset="beach">🏖️ Beach Day</button>
+          <button class="sample-photo-btn" data-preset="birthday">🎂 Birthday Party</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="modalAddPhoto">Cancel</button>
+        <button class="btn-primary" id="btnSaveNewPhoto">Add Photo</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Voice Note Dialog -->
+  <dialog class="app-modal" id="modalVoiceNote">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🎙️ Parent Voice Memory Log</h3>
+        <button class="modal-close" data-close="modalVoiceNote">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-hint">Record or log sensory observations, calm-down routines, or rules for Routines AI Brain to reference.</p>
+        <textarea id="voiceNoteText" rows="4" placeholder="e.g. Leo had sensory overload today when hearing loud blender sounds. Deep pressure hugs and noise-canceling headphones calmed him down within 5 minutes."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="modalVoiceNote">Cancel</button>
+        <button class="btn-primary" id="btnSaveVoiceNote">Save to Brain</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

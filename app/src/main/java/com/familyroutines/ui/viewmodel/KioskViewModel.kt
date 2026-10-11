@@ -16,7 +16,8 @@ import kotlinx.coroutines.launch
 class KioskViewModel(
     private val repository: FamilyRepository,
     private val memoryEngine: FamilyMemoryEngine,
-    private val weatherService: WeatherService
+    private val weatherService: WeatherService,
+    private val userPreferences: com.familyroutines.data.local.UserPreferences
 ) : ViewModel() {
 
     val children: StateFlow<List<ChildEntity>> = repository.allChildren
@@ -26,7 +27,7 @@ class KioskViewModel(
     private val _selectedChildId = MutableStateFlow<Long?>(null)
     val selectedChildId: StateFlow<Long?> = _selectedChildId.asStateFlow()
 
-    private val _isDarkTheme = MutableStateFlow(false)
+    private val _isDarkTheme = MutableStateFlow(userPreferences.isDarkTheme())
     val isDarkTheme: StateFlow<Boolean> = _isDarkTheme.asStateFlow()
 
     private val _selectedTab = MutableStateFlow("routines") // "routines", "chores", "calendar", "family_photos"
@@ -137,7 +138,9 @@ class KioskViewModel(
     }
 
     fun toggleDarkTheme() {
-        _isDarkTheme.value = !_isDarkTheme.value
+        val next = !_isDarkTheme.value
+        _isDarkTheme.value = next
+        userPreferences.setDarkTheme(next)
     }
 
     fun selectTab(tab: String) {
@@ -405,12 +408,13 @@ class KioskViewModel(
 class KioskViewModelFactory(
     private val repository: FamilyRepository,
     private val memoryEngine: FamilyMemoryEngine,
-    private val weatherService: com.familyroutines.data.weather.WeatherService
+    private val weatherService: com.familyroutines.data.weather.WeatherService,
+    private val userPreferences: com.familyroutines.data.local.UserPreferences
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(KioskViewModel::class.java)) {
-            return KioskViewModel(repository, memoryEngine, weatherService) as T
+            return KioskViewModel(repository, memoryEngine, weatherService, userPreferences) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
