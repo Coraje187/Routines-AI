@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,6 +26,7 @@ import com.familyroutines.ui.theme.*
 fun ChoreItemCard(
     chore: ChoreEntity,
     onToggle: () -> Unit,
+    onDelete: () -> Unit = {},
     isDarkTheme: Boolean = false,
     modifier: Modifier = Modifier
 ) {
@@ -129,28 +132,46 @@ fun ChoreItemCard(
             }
         }
 
-        // Tactile Checkbox
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .background(
-                    if (isDone) (if (isDarkTheme) DarkSuccessBorder else SuccessGreen) else (if (isDarkTheme) Color(0xFF0F172A) else Color.White),
-                    RoundedCornerShape(12.dp)
-                )
-                .border(
-                    2.dp,
-                    if (isDone) (if (isDarkTheme) DarkSuccessBorder else SuccessGreen) else (if (isDarkTheme) Color(0xFF64748B) else Color(0xFF94A3B8)),
-                    RoundedCornerShape(12.dp)
-                ),
-            contentAlignment = Alignment.Center
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            if (isDone) {
-                Text(
-                    text = "✓",
-                    color = Color.White,
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.Black
+            // Delete Chore Button
+            IconButton(
+                onClick = onDelete,
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.DeleteOutline,
+                    contentDescription = "Delete chore",
+                    tint = if (isDarkTheme) DarkTextSecondary else Color(0xFF94A3B8),
+                    modifier = Modifier.size(22.dp)
                 )
+            }
+
+            // Tactile Checkbox
+            Box(
+                modifier = Modifier
+                    .size(46.dp)
+                    .background(
+                        if (isDone) (if (isDarkTheme) DarkSuccessBorder else SuccessGreen) else (if (isDarkTheme) Color(0xFF0F172A) else Color.White),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .border(
+                        2.dp,
+                        if (isDone) (if (isDarkTheme) DarkSuccessBorder else SuccessGreen) else (if (isDarkTheme) Color(0xFF64748B) else Color(0xFF94A3B8)),
+                        RoundedCornerShape(12.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                if (isDone) {
+                    Text(
+                        text = "✓",
+                        color = Color.White,
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
             }
         }
     }

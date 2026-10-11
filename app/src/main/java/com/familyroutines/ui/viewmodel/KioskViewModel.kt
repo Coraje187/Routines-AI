@@ -156,6 +156,11 @@ class KioskViewModel(
             )
         }
     }
+    fun deleteChore(chore: ChoreEntity) {
+        viewModelScope.launch {
+            repository.deleteChore(chore)
+        }
+    }
 
     // Routine Management
     fun openAddRoutineDialog() { _showAddRoutineDialog.value = true }
@@ -170,6 +175,11 @@ class KioskViewModel(
                     timeBucket = timeBucket
                 )
             )
+        }
+    }
+    fun deleteRoutine(item: RoutineItemEntity) {
+        viewModelScope.launch {
+            repository.deleteRoutine(item)
         }
     }
 

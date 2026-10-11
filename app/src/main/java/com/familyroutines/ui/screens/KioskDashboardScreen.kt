@@ -49,7 +49,9 @@ fun KioskDashboardScreen(
     onDeleteEvent: (CalendarEventEntity) -> Unit,
     onToggleDarkTheme: () -> Unit,
     onToggleRoutine: (RoutineItemEntity) -> Unit,
+    onDeleteRoutine: (RoutineItemEntity) -> Unit = {},
     onToggleChore: (ChoreEntity) -> Unit,
+    onDeleteChore: (ChoreEntity) -> Unit = {},
     onAskQuery: (String) -> Unit,
     onRecordVoiceNote: () -> Unit
 ) {
@@ -182,6 +184,7 @@ fun KioskDashboardScreen(
                                     RoutineItemCard(
                                         item = item,
                                         onToggle = { onToggleRoutine(item) },
+                                        onDelete = { onDeleteRoutine(item) },
                                         isDarkTheme = isDarkTheme
                                     )
                                 }
@@ -221,6 +224,7 @@ fun KioskDashboardScreen(
                                     ChoreItemCard(
                                         chore = chore,
                                         onToggle = { onToggleChore(chore) },
+                                        onDelete = { onDeleteChore(chore) },
                                         isDarkTheme = isDarkTheme
                                     )
                                 }

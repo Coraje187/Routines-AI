@@ -96,7 +96,9 @@ class MainActivity : ComponentActivity() {
                         onDeleteEvent = { viewModel.deleteCalendarEvent(it) },
                         onToggleDarkTheme = { viewModel.toggleDarkTheme() },
                         onToggleRoutine = { viewModel.toggleRoutine(it) },
+                        onDeleteRoutine = { viewModel.deleteRoutine(it) },
                         onToggleChore = { viewModel.toggleChore(it) },
+                        onDeleteChore = { viewModel.deleteChore(it) },
                         onAskQuery = { viewModel.askQuery(it) },
                         onRecordVoiceNote = {
                             recognizedTextState.value = ""
