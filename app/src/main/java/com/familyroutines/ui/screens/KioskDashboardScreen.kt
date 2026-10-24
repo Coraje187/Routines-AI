@@ -1,11 +1,12 @@
 package com.familyroutines.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -67,385 +68,602 @@ fun KioskDashboardScreen(
     onAskQuery: (String) -> Unit,
     onRecordVoiceNote: () -> Unit
 ) {
-    var queryInput by remember { mutableStateOf("") }
-
     val uncompletedRoutines = routines.filter { !it.isCompleted }
     val firstTask = uncompletedRoutines.firstOrNull()
     val thenTask = uncompletedRoutines.drop(1).firstOrNull()
 
-    Column(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(if (isDarkTheme) DarkBackground else BackgroundSlate)
-            .padding(16.dp)
+            .safeDrawingPadding()
     ) {
-        // TOP HEADER: Child Profile Selector Chips, Time & Weather Display, Dark Mode Toggle
-        KidProfileBar(
-            children = children,
-            selectedChildId = selectedChild?.id,
-            weather = weather,
-            isDarkTheme = isDarkTheme,
-            onSelectChild = onSelectChild,
-            onAddKid = onAddKid,
-            onDeleteChild = onDeleteChild,
-            onEditKidPhoto = onEditKidPhoto,
-            onWeatherClick = onWeatherClick,
-            onToggleDarkTheme = onToggleDarkTheme,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
+        val isCompact = maxWidth < 720.dp || maxHeight < 500.dp
 
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxSize(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                .fillMaxSize()
+                .padding(if (isCompact) 10.dp else 16.dp)
         ) {
-            // --- LEFT PANE: MAIN KIOSK VIEW (Routines / Chores / Calendar) ---
-            Card(
-                modifier = Modifier
-                    .weight(1.35f)
-                    .fillMaxHeight(),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (isDarkTheme) DarkCardBg else CardWhite
-                ),
-                shape = RoundedCornerShape(24.dp)
-            ) {
-                Column(
+            // TOP HEADER: Child Profile Selector Chips, Time & Weather Display, Dark Mode Toggle
+            KidProfileBar(
+                children = children,
+                selectedChildId = selectedChild?.id,
+                weather = weather,
+                isDarkTheme = isDarkTheme,
+                onSelectChild = onSelectChild,
+                onAddKid = onAddKid,
+                onDeleteChild = onDeleteChild,
+                onEditKidPhoto = onEditKidPhoto,
+                onWeatherClick = onWeatherClick,
+                onToggleDarkTheme = onToggleDarkTheme,
+                isCompact = isCompact,
+                modifier = Modifier.padding(bottom = if (isCompact) 8.dp else 12.dp)
+            )
+
+            if (isCompact) {
+                // =========================================================================
+                // COMPACT PHONE ADAPTIVE LAYOUT (Single Unified Screen with Horizontal Tabs)
+                // =========================================================================
+                Card(
                     modifier = Modifier
-                        .padding(20.dp)
-                        .fillMaxSize()
+                        .fillMaxWidth()
+                        .weight(1f),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isDarkTheme) DarkCardBg else CardWhite
+                    ),
+                    shape = RoundedCornerShape(20.dp)
                 ) {
-                    // Navigation Tabs
-                    Row(
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .background(
-                                if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF1F5F9),
-                                RoundedCornerShape(16.dp)
-                            )
-                            .padding(4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            .padding(14.dp)
+                            .fillMaxSize()
                     ) {
-                        val tabs = listOf(
+                        // Responsive Scrollable Navigation Tabs (includes 🤖 AI Brain on phones)
+                        val phoneTabs = listOf(
                             Triple("routines", "📋 Routines", Icons.Default.Schedule),
-                            Triple("chores", "🧹 Chores & Stars", Icons.Default.CleaningServices),
-                            Triple("calendar", "📅 Wall Calendar", Icons.Default.CalendarMonth),
-                            Triple("family_photos", "🖼️ Family Frame", Icons.Default.PhotoLibrary)
+                            Triple("chores", "🧹 Chores", Icons.Default.CleaningServices),
+                            Triple("calendar", "📅 Calendar", Icons.Default.CalendarMonth),
+                            Triple("family_photos", "🖼️ Frame", Icons.Default.PhotoLibrary),
+                            Triple("brain", "🤖 AI Brain", Icons.Default.Mic)
                         )
 
-                        tabs.forEach { (tabKey, title, icon) ->
-                            val isSelected = selectedTab == tabKey
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .background(
-                                        if (isSelected) (if (isDarkTheme) Color(0xFF2563EB) else PrimaryBlue) else Color.Transparent,
-                                        RoundedCornerShape(12.dp)
-                                    )
-                                    .clickable { onSelectTab(tabKey) }
-                                    .padding(vertical = 10.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = title,
-                                    fontSize = 15.sp,
-                                    fontWeight = if (isSelected) FontWeight.Black else FontWeight.SemiBold,
-                                    color = if (isSelected) Color.White else if (isDarkTheme) DarkTextSecondary else TextMuted
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF1F5F9),
+                                    RoundedCornerShape(14.dp)
                                 )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // Tab Contents
-                    when (selectedTab) {
-                        "routines" -> {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "${selectedChild?.name ?: "Kid"}'s Routines",
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isDarkTheme) DarkTextPrimary else TextDark
-                                )
-                                Button(
-                                    onClick = onAddRoutine,
-                                    shape = RoundedCornerShape(12.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                                .horizontalScroll(rememberScrollState())
+                                .padding(4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            phoneTabs.forEach { (tabKey, title, _) ->
+                                val isSelected = selectedTab == tabKey
+                                Box(
+                                    modifier = Modifier
+                                        .background(
+                                            if (isSelected) (if (isDarkTheme) Color(0xFF2563EB) else PrimaryBlue) else Color.Transparent,
+                                            RoundedCornerShape(10.dp)
+                                        )
+                                        .clickable { onSelectTab(tabKey) }
+                                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(Icons.Default.Add, contentDescription = "Add Routine", modifier = Modifier.size(16.dp))
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Add Routine")
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(10.dp))
-
-                            // First-Then Banner
-                            FirstThenBoard(
-                                firstItem = firstTask,
-                                thenItem = thenTask,
-                                isDarkTheme = isDarkTheme,
-                                modifier = Modifier.padding(bottom = 14.dp)
-                            )
-
-                            LazyColumn(
-                                verticalArrangement = Arrangement.spacedBy(12.dp),
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                items(routines, key = { it.id }) { item ->
-                                    RoutineItemCard(
-                                        item = item,
-                                        onToggle = { onToggleRoutine(item) },
-                                        onDelete = { onDeleteRoutine(item) },
-                                        isDarkTheme = isDarkTheme
+                                    Text(
+                                        text = title,
+                                        fontSize = 13.sp,
+                                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.SemiBold,
+                                        color = if (isSelected) Color.White else if (isDarkTheme) DarkTextSecondary else TextMuted
                                     )
                                 }
                             }
                         }
 
-                        "chores" -> {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "${selectedChild?.name ?: "Kid"}'s Chores",
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isDarkTheme) DarkTextPrimary else TextDark
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Full-Width Content based on selected tab
+                        when (selectedTab) {
+                            "brain" -> {
+                                AiBrainContent(
+                                    isDarkTheme = isDarkTheme,
+                                    isModelLoaded = isModelLoaded,
+                                    selectedChild = selectedChild,
+                                    assistantResponse = assistantResponse,
+                                    onRecordVoiceNote = onRecordVoiceNote,
+                                    onAskQuery = onAskQuery,
+                                    modifier = Modifier.fillMaxSize()
                                 )
-                                Button(
-                                    onClick = onAddChore,
-                                    shape = RoundedCornerShape(12.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
-                                ) {
-                                    Icon(Icons.Default.Add, contentDescription = "Add Chore", modifier = Modifier.size(16.dp))
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Add Chore")
-                                }
                             }
-
-                            Spacer(modifier = Modifier.height(10.dp))
-
-                            LazyColumn(
-                                verticalArrangement = Arrangement.spacedBy(12.dp),
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                items(chores, key = { it.id }) { chore ->
-                                    ChoreItemCard(
-                                        chore = chore,
-                                        onToggle = { onToggleChore(chore) },
-                                        onDelete = { onDeleteChore(chore) },
-                                        isDarkTheme = isDarkTheme
-                                    )
-                                }
+                            "routines" -> {
+                                RoutinesContent(
+                                    selectedChild = selectedChild,
+                                    routines = routines,
+                                    firstTask = firstTask,
+                                    thenTask = thenTask,
+                                    isDarkTheme = isDarkTheme,
+                                    onAddRoutine = onAddRoutine,
+                                    onToggleRoutine = onToggleRoutine,
+                                    onDeleteRoutine = onDeleteRoutine
+                                )
                             }
-                        }
-
-                        "calendar" -> {
-                            MonthCalendarView(
-                                events = calendarEvents,
-                                children = children,
-                                selectedDateString = selectedCalendarDate,
-                                isDarkTheme = isDarkTheme,
-                                onSelectDate = onSelectCalendarDate,
-                                onAddEvent = onAddEvent,
-                                onDeleteEvent = onDeleteEvent,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
-
-                        "family_photos" -> {
-                            FamilyPhotoFrameScreen(
-                                photos = familyPhotos,
-                                isDarkTheme = isDarkTheme,
-                                onAddPhoto = onAddFamilyPhoto,
-                                onDeletePhoto = onDeleteFamilyPhoto,
-                                onUpdateCaption = onUpdateFamilyPhotoCaption,
-                                modifier = Modifier.fillMaxSize()
-                            )
+                            "chores" -> {
+                                ChoresContent(
+                                    selectedChild = selectedChild,
+                                    chores = chores,
+                                    isDarkTheme = isDarkTheme,
+                                    onAddChore = onAddChore,
+                                    onToggleChore = onToggleChore,
+                                    onDeleteChore = onDeleteChore
+                                )
+                            }
+                            "calendar" -> {
+                                MonthCalendarView(
+                                    events = calendarEvents,
+                                    children = children,
+                                    selectedDateString = selectedCalendarDate,
+                                    isDarkTheme = isDarkTheme,
+                                    onSelectDate = onSelectCalendarDate,
+                                    onAddEvent = onAddEvent,
+                                    onDeleteEvent = onDeleteEvent,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                            "family_photos" -> {
+                                FamilyPhotoFrameScreen(
+                                    photos = familyPhotos,
+                                    isDarkTheme = isDarkTheme,
+                                    onAddPhoto = onAddFamilyPhoto,
+                                    onDeletePhoto = onDeleteFamilyPhoto,
+                                    onUpdateCaption = onUpdateFamilyPhotoCaption,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
                         }
                     }
                 }
-            }
-
-            // --- RIGHT PANE: ROUTINES A.I BRAIN & AMBIENT FAMILY FRAME ---
-            Card(
-                modifier = Modifier
-                    .weight(0.95f)
-                    .fillMaxHeight(),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (isDarkTheme) DarkAssistantCard else PrimaryBlueBg
-                ),
-                shape = RoundedCornerShape(24.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(20.dp)
-                        .fillMaxSize()
+            } else {
+                // =========================================================================
+                // TABLET / DESKTOP WIDE 2-PANE KIOSK LAYOUT
+                // =========================================================================
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Right Pane Header Switcher: [🤖 AI Brain] | [🖼️ Family Frame]
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    // --- LEFT PANE: MAIN KIOSK VIEW ---
+                    Card(
+                        modifier = Modifier
+                            .weight(1.35f)
+                            .fillMaxHeight(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isDarkTheme) DarkCardBg else CardWhite
+                        ),
+                        shape = RoundedCornerShape(24.dp)
                     ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            modifier = Modifier
+                                .padding(20.dp)
+                                .fillMaxSize()
                         ) {
-                            FilterChip(
-                                selected = rightPaneMode == "brain",
-                                onClick = { onSetRightPaneMode("brain") },
-                                label = {
-                                    Text(
-                                        text = "🤖 AI Brain",
-                                        fontWeight = if (rightPaneMode == "brain") FontWeight.Bold else FontWeight.Normal,
-                                        fontSize = 13.sp
-                                    )
-                                }
+                            val tabs = listOf(
+                                Triple("routines", "📋 Routines", Icons.Default.Schedule),
+                                Triple("chores", "🧹 Chores & Stars", Icons.Default.CleaningServices),
+                                Triple("calendar", "📅 Wall Calendar", Icons.Default.CalendarMonth),
+                                Triple("family_photos", "🖼️ Family Frame", Icons.Default.PhotoLibrary)
                             )
 
-                            FilterChip(
-                                selected = rightPaneMode == "photo",
-                                onClick = { onSetRightPaneMode("photo") },
-                                label = {
-                                    Text(
-                                        text = "🖼️ Photo Frame",
-                                        fontWeight = if (rightPaneMode == "photo") FontWeight.Bold else FontWeight.Normal,
-                                        fontSize = 13.sp
-                                    )
-                                }
-                            )
-                        }
-
-                        if (rightPaneMode == "brain") {
-                            IconButton(
-                                onClick = onRecordVoiceNote,
-                                modifier = Modifier.background(PrimaryBlue, RoundedCornerShape(12.dp))
-                            ) {
-                                Icon(Icons.Default.Mic, contentDescription = "Record Note", tint = Color.White)
-                            }
-                        } else {
-                            IconButton(
-                                onClick = onAddFamilyPhoto,
-                                modifier = Modifier.background(PrimaryBlue, RoundedCornerShape(12.dp))
-                            ) {
-                                Icon(Icons.Default.AddPhotoAlternate, contentDescription = "Add Photo", tint = Color.White)
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    if (rightPaneMode == "photo") {
-                        // Ambient photo frame inside the right pane
-                        FamilyPhotoFrameScreen(
-                            photos = familyPhotos,
-                            isDarkTheme = isDarkTheme,
-                            onAddPhoto = onAddFamilyPhoto,
-                            onDeletePhoto = onDeleteFamilyPhoto,
-                            onUpdateCaption = onUpdateFamilyPhotoCaption,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        // Standard AI Brain view
-                        Column(modifier = Modifier.fillMaxSize()) {
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "Routines A.I Brain",
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isDarkTheme) Color(0xFF93C5FD) else PrimaryBlueText
-                                )
-                                Text(
-                                    text = if (isModelLoaded) "Gemma 2B Ready" else "Keyword Index Mode",
-                                    fontSize = 12.sp,
-                                    color = if (isModelLoaded) Color(0xFF4ADE80) else Color(0xFFFBBF24)
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            Box(
                                 modifier = Modifier
-                                    .weight(1f)
                                     .fillMaxWidth()
                                     .background(
-                                        if (isDarkTheme) DarkAssistantInner else Color.White,
+                                        if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF1F5F9),
                                         RoundedCornerShape(16.dp)
                                     )
-                                    .padding(16.dp)
+                                    .padding(4.dp),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
-                                Text(
-                                    text = if (assistantResponse.isBlank()) {
-                                        "Ask how to prep meals, sensory quirks, calm-down routines, or rules for ${selectedChild?.name ?: "kids"}..."
-                                    } else {
-                                        assistantResponse
-                                    },
-                                    fontSize = 16.sp,
-                                    color = if (assistantResponse.isBlank()) {
-                                        if (isDarkTheme) DarkTextSecondary else Color.Gray
-                                    } else {
-                                        if (isDarkTheme) DarkTextPrimary else TextDark
-                                    },
-                                    lineHeight = 22.sp
-                                )
+                                tabs.forEach { (tabKey, title, _) ->
+                                    val isSelected = selectedTab == tabKey
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .background(
+                                                if (isSelected) (if (isDarkTheme) Color(0xFF2563EB) else PrimaryBlue) else Color.Transparent,
+                                                RoundedCornerShape(12.dp)
+                                            )
+                                            .clickable { onSelectTab(tabKey) }
+                                            .padding(vertical = 10.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = title,
+                                            fontSize = 15.sp,
+                                            fontWeight = if (isSelected) FontWeight.Black else FontWeight.SemiBold,
+                                            color = if (isSelected) Color.White else if (isDarkTheme) DarkTextSecondary else TextMuted
+                                        )
+                                    }
+                                }
                             }
 
                             Spacer(modifier = Modifier.height(14.dp))
 
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                OutlinedTextField(
-                                    value = queryInput,
-                                    onValueChange = { queryInput = it },
-                                    modifier = Modifier.weight(1f),
-                                    placeholder = {
-                                        Text(
-                                            "Ask about ${selectedChild?.name ?: "kid"}...",
-                                            color = if (isDarkTheme) DarkTextSecondary else Color.Gray
-                                        )
-                                    },
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        focusedTextColor = if (isDarkTheme) DarkTextPrimary else TextDark,
-                                        unfocusedTextColor = if (isDarkTheme) DarkTextPrimary else TextDark,
-                                        focusedContainerColor = if (isDarkTheme) DarkAssistantInner else Color.White,
-                                        unfocusedContainerColor = if (isDarkTheme) DarkAssistantInner else Color.White,
-                                    ),
-                                    shape = RoundedCornerShape(12.dp)
-                                )
-                                Button(
-                                    onClick = {
-                                        if (queryInput.isNotBlank()) {
-                                            onAskQuery(queryInput)
-                                            queryInput = ""
-                                        }
-                                    },
-                                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
-                                    shape = RoundedCornerShape(12.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.Send,
-                                        contentDescription = "Submit Query"
+                            when (selectedTab) {
+                                "routines", "brain" -> {
+                                    RoutinesContent(
+                                        selectedChild = selectedChild,
+                                        routines = routines,
+                                        firstTask = firstTask,
+                                        thenTask = thenTask,
+                                        isDarkTheme = isDarkTheme,
+                                        onAddRoutine = onAddRoutine,
+                                        onToggleRoutine = onToggleRoutine,
+                                        onDeleteRoutine = onDeleteRoutine
+                                    )
+                                }
+                                "chores" -> {
+                                    ChoresContent(
+                                        selectedChild = selectedChild,
+                                        chores = chores,
+                                        isDarkTheme = isDarkTheme,
+                                        onAddChore = onAddChore,
+                                        onToggleChore = onToggleChore,
+                                        onDeleteChore = onDeleteChore
+                                    )
+                                }
+                                "calendar" -> {
+                                    MonthCalendarView(
+                                        events = calendarEvents,
+                                        children = children,
+                                        selectedDateString = selectedCalendarDate,
+                                        isDarkTheme = isDarkTheme,
+                                        onSelectDate = onSelectCalendarDate,
+                                        onAddEvent = onAddEvent,
+                                        onDeleteEvent = onDeleteEvent,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
+                                "family_photos" -> {
+                                    FamilyPhotoFrameScreen(
+                                        photos = familyPhotos,
+                                        isDarkTheme = isDarkTheme,
+                                        onAddPhoto = onAddFamilyPhoto,
+                                        onDeletePhoto = onDeleteFamilyPhoto,
+                                        onUpdateCaption = onUpdateFamilyPhotoCaption,
+                                        modifier = Modifier.fillMaxSize()
                                     )
                                 }
                             }
                         }
                     }
+
+                    // --- RIGHT PANE: ROUTINES A.I BRAIN & AMBIENT FAMILY FRAME ---
+                    Card(
+                        modifier = Modifier
+                            .weight(0.95f)
+                            .fillMaxHeight(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isDarkTheme) DarkAssistantCard else PrimaryBlueBg
+                        ),
+                        shape = RoundedCornerShape(24.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .padding(20.dp)
+                                .fillMaxSize()
+                        ) {
+                            // Switcher: [🤖 AI Brain] | [🖼️ Photo Frame]
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    FilterChip(
+                                        selected = rightPaneMode == "brain",
+                                        onClick = { onSetRightPaneMode("brain") },
+                                        label = {
+                                            Text(
+                                                text = "🤖 AI Brain",
+                                                fontWeight = if (rightPaneMode == "brain") FontWeight.Bold else FontWeight.Normal,
+                                                fontSize = 13.sp
+                                            )
+                                        }
+                                    )
+
+                                    FilterChip(
+                                        selected = rightPaneMode == "photo",
+                                        onClick = { onSetRightPaneMode("photo") },
+                                        label = {
+                                            Text(
+                                                text = "🖼️ Photo Frame",
+                                                fontWeight = if (rightPaneMode == "photo") FontWeight.Bold else FontWeight.Normal,
+                                                fontSize = 13.sp
+                                            )
+                                        }
+                                    )
+                                }
+
+                                if (rightPaneMode == "brain") {
+                                    IconButton(
+                                        onClick = onRecordVoiceNote,
+                                        modifier = Modifier.background(PrimaryBlue, RoundedCornerShape(12.dp))
+                                    ) {
+                                        Icon(Icons.Default.Mic, contentDescription = "Record Note", tint = Color.White)
+                                    }
+                                } else {
+                                    IconButton(
+                                        onClick = onAddFamilyPhoto,
+                                        modifier = Modifier.background(PrimaryBlue, RoundedCornerShape(12.dp))
+                                    ) {
+                                        Icon(Icons.Default.AddPhotoAlternate, contentDescription = "Add Photo", tint = Color.White)
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(14.dp))
+
+                            if (rightPaneMode == "photo") {
+                                FamilyPhotoFrameScreen(
+                                    photos = familyPhotos,
+                                    isDarkTheme = isDarkTheme,
+                                    onAddPhoto = onAddFamilyPhoto,
+                                    onDeletePhoto = onDeleteFamilyPhoto,
+                                    onUpdateCaption = onUpdateFamilyPhotoCaption,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else {
+                                AiBrainContent(
+                                    isDarkTheme = isDarkTheme,
+                                    isModelLoaded = isModelLoaded,
+                                    selectedChild = selectedChild,
+                                    assistantResponse = assistantResponse,
+                                    onRecordVoiceNote = onRecordVoiceNote,
+                                    onAskQuery = onAskQuery,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        }
+                    }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RoutinesContent(
+    selectedChild: ChildEntity?,
+    routines: List<RoutineItemEntity>,
+    firstTask: RoutineItemEntity?,
+    thenTask: RoutineItemEntity?,
+    isDarkTheme: Boolean,
+    onAddRoutine: () -> Unit,
+    onToggleRoutine: (RoutineItemEntity) -> Unit,
+    onDeleteRoutine: (RoutineItemEntity) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "${selectedChild?.name ?: "Kid"}'s Routines",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isDarkTheme) DarkTextPrimary else TextDark
+            )
+            Button(
+                onClick = onAddRoutine,
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Routine", modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("Add Routine", fontSize = 13.sp)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // First-Then Banner
+        FirstThenBoard(
+            firstItem = firstTask,
+            thenItem = thenTask,
+            isDarkTheme = isDarkTheme,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(routines, key = { it.id }) { item ->
+                RoutineItemCard(
+                    item = item,
+                    onToggle = { onToggleRoutine(item) },
+                    onDelete = { onDeleteRoutine(item) },
+                    isDarkTheme = isDarkTheme
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChoresContent(
+    selectedChild: ChildEntity?,
+    chores: List<ChoreEntity>,
+    isDarkTheme: Boolean,
+    onAddChore: () -> Unit,
+    onToggleChore: (ChoreEntity) -> Unit,
+    onDeleteChore: (ChoreEntity) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "${selectedChild?.name ?: "Kid"}'s Chores",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isDarkTheme) DarkTextPrimary else TextDark
+            )
+            Button(
+                onClick = onAddChore,
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Chore", modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("Add Chore", fontSize = 13.sp)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(chores, key = { it.id }) { chore ->
+                ChoreItemCard(
+                    chore = chore,
+                    onToggle = { onToggleChore(chore) },
+                    onDelete = { onDeleteChore(chore) },
+                    isDarkTheme = isDarkTheme
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AiBrainContent(
+    isDarkTheme: Boolean,
+    isModelLoaded: Boolean,
+    selectedChild: ChildEntity?,
+    assistantResponse: String,
+    onRecordVoiceNote: () -> Unit,
+    onAskQuery: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var queryInput by remember { mutableStateOf("") }
+
+    Column(modifier = modifier) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Routines A.I Brain",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isDarkTheme) Color(0xFF93C5FD) else PrimaryBlueText
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = if (isModelLoaded) "Gemma 2B Ready" else "Keyword Index Mode",
+                    fontSize = 12.sp,
+                    color = if (isModelLoaded) Color(0xFF4ADE80) else Color(0xFFFBBF24)
+                )
+                IconButton(
+                    onClick = onRecordVoiceNote,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(PrimaryBlue, RoundedCornerShape(8.dp))
+                ) {
+                    Icon(
+                        Icons.Default.Mic,
+                        contentDescription = "Record Note",
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .background(
+                    if (isDarkTheme) DarkAssistantInner else Color.White,
+                    RoundedCornerShape(16.dp)
+                )
+                .padding(14.dp)
+        ) {
+            Text(
+                text = if (assistantResponse.isBlank()) {
+                    "Ask how to prep meals, sensory quirks, calm-down routines, or rules for ${selectedChild?.name ?: "kids"}..."
+                } else {
+                    assistantResponse
+                },
+                fontSize = 15.sp,
+                color = if (assistantResponse.isBlank()) {
+                    if (isDarkTheme) DarkTextSecondary else Color.Gray
+                } else {
+                    if (isDarkTheme) DarkTextPrimary else TextDark
+                },
+                lineHeight = 22.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedTextField(
+                value = queryInput,
+                onValueChange = { queryInput = it },
+                modifier = Modifier.weight(1f),
+                placeholder = {
+                    Text(
+                        "Ask about ${selectedChild?.name ?: "kid"}...",
+                        color = if (isDarkTheme) DarkTextSecondary else Color.Gray,
+                        fontSize = 14.sp
+                    )
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = if (isDarkTheme) DarkTextPrimary else TextDark,
+                    unfocusedTextColor = if (isDarkTheme) DarkTextPrimary else TextDark,
+                    focusedContainerColor = if (isDarkTheme) DarkAssistantInner else Color.White,
+                    unfocusedContainerColor = if (isDarkTheme) DarkAssistantInner else Color.White,
+                ),
+                shape = RoundedCornerShape(12.dp)
+            )
+            Button(
+                onClick = {
+                    if (queryInput.isNotBlank()) {
+                        onAskQuery(queryInput)
+                        queryInput = ""
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                shape = RoundedCornerShape(12.dp),
+                contentPadding = PaddingValues(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Send,
+                    contentDescription = "Submit Query"
+                )
             }
         }
     }

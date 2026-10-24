@@ -219,7 +219,7 @@ fun MonthCalendarView(
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(58.dp)
+                                    .height(if (rows > 5) 48.dp else 52.dp)
                                     .clip(RoundedCornerShape(10.dp))
                                     .background(
                                         when {
@@ -330,7 +330,7 @@ fun MonthCalendarView(
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(58.dp)
+                                    .height(if (rows > 5) 48.dp else 52.dp)
                             )
                         }
                     }
