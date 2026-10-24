@@ -210,15 +210,15 @@ private fun GenesisBrandingBadge(isCompact: Boolean) {
         modifier = Modifier
             .background(
                 Color(0xFF090D16),
-                RoundedCornerShape(if (isCompact) 16.dp else 20.dp)
+                CircleShape
             )
             .border(
                 1.5.dp,
                 Color(0xFF00F0FF),
-                RoundedCornerShape(if (isCompact) 16.dp else 20.dp)
+                CircleShape
             )
             .padding(
-                horizontal = if (isCompact) 10.dp else 12.dp,
+                horizontal = if (isCompact) 10.dp else 14.dp,
                 vertical = if (isCompact) 5.dp else 7.dp
             ),
         verticalAlignment = Alignment.CenterVertically,
